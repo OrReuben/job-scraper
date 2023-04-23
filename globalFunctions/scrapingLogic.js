@@ -13,7 +13,7 @@ const scrapingKeywords = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: true });
+  return await puppeteer.launch({ headless: false });
 };
 
 const navigateToPage = async (page, link) => {

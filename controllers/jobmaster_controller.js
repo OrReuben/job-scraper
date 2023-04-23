@@ -36,7 +36,7 @@ const processPages = async (page, totalPages, keyword) => {
         await Promise.race([
           page.waitForSelector("#enterJob .jobNumStyle"),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout")), 900)
+            setTimeout(() => reject(new Error("Timeout")), 1500)
           ),
         ]);
       } catch (err) {
