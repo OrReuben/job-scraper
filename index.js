@@ -2,25 +2,17 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const executeActionsRoute = require("./routes/execute_actions_route");
-// const axios = require("axios");
+const { automateExecutions } = require("./globalFunctions/automateExecutions");
 
-// const axiosInstance = axios.create({
-//   baseURL: "http://localhost:5000",
-// });
 
-// let executingAction = false;
+const schedule = [
+  { time: "11:05", route: "/execute/jobmaster" },
+  { time: "02:00", route: "/execute/reset", daysInterval: 3 },
+];
 
-// setTimeout(async () => {
-//   const timeNowHours = new Date().getHours();
-//   const timeNowMinutes = new Date().getMinutes();
-//   const timeNow = `${timeNowHours}:${timeNowMinutes}`;
-//   if (timeNow === "19:53" && !executingAction) {
-//     executingAction = true;
-//     const { data } = await axiosInstance.get("/execute/jobmaster");
-//     console.log(data);
-//     executingAction = false;
-//   }
-// }, 29999);
+schedule.forEach(({ time, route, daysInterval }) => {
+  automateExecutions(time, route, daysInterval);
+});
 
 app.use(express.json());
 app.use("/execute", executeActionsRoute);

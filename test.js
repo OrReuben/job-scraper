@@ -8,8 +8,8 @@ const strArr = [
   "השכלה רלוונטית בתחום.  ניסיון של לפחות כשנתיים כראש צוות של מפתחי fullstack web ( ניהול מקצועי ואישי)  ניסיון של 3 שנים ומעלה hands-on ב .net core  C# 4 ומעלה  כתיבת שירותי rest  HTML5 CSS3  Angular 6+  ניסיון של שנה מול וידע בכתיבת שאילתות    SQL SERVR  MONGO DB",
 ];
 const regex1 = /(?:(?<=\s)|^)(?:3|4|5|6|7|שלוש|ארבע|חמש|שש|שבע)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-7](?:(?=\D)|$)/;
-const regex2 = /(^|\W)(2|\u{05E9}\u{05E0}\u{05EA}\u{05D9}\u{05D9}\u{05DD}|two)($|\W)/ui;
-const regex3 = /(^|\W)(1|\u{05E9}\u{05E0}\u{05D4}|one)($|\W)/ui;
+const regex2 = /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/;
+const regex3 = /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/;
 
 
 const newArr = strArr.filter((item) => {
@@ -25,4 +25,5 @@ const newArr = strArr.filter((item) => {
   }
 });
 // console.log(newArr);
-console.log(regex1.test('שלוש'));
+
+

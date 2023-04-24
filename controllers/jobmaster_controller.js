@@ -7,7 +7,9 @@ const {
   closePopupIfExists,
   filterJobData,
   scrapingKeywords,
+  filterUniqueLinks,
 } = require("../globalFunctions/scrapingLogic");
+const { retryFunction } = require("../globalFunctions/retryFunction");
 
 const getTotalPages = async (page) => {
   const pageCountEl = await page.$("#desktopResultsHeader");
@@ -36,7 +38,7 @@ const processPages = async (page, totalPages, keyword) => {
         await Promise.race([
           page.waitForSelector("#enterJob .jobNumStyle"),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout")), 1500)
+            setTimeout(() => reject(new Error("Timeout")), 2000)
           ),
         ]);
       } catch (err) {
@@ -64,7 +66,7 @@ const processPages = async (page, totalPages, keyword) => {
       const type = $("#enterJob .jobType").text().trim();
       const jobIdText = $("#enterJob .jobNumStyle").text().trim();
       const numberRegex = /\d+/g;
-      const jobId = (jobIdText && jobIdText.match(numberRegex)[0]);
+      const jobId = jobIdText && jobIdText.match(numberRegex)[0];
       const link = `https://www.jobmaster.co.il/jobs/checknum.asp?key=${jobId}`;
       const description = $("#jobFullDetails .jobDescription")
         .text()
@@ -93,7 +95,8 @@ const processPages = async (page, totalPages, keyword) => {
 
 const scrapeJobmasterLogic = async () => {
   const startingScriptTime = new Date().getTime();
-  const keywords = scrapingKeywords;
+  // const keywords = scrapingKeywords;
+  const keywords = ["Fullstack"];
 
   const browser = await launchBrowser();
   const page = await browser.newPage();
@@ -119,11 +122,12 @@ const scrapeJobmasterLogic = async () => {
     jobData.push(...keywordJobData);
   }
 
-  const filteredJobs = filterJobData(jobData);
+  const filteredJobs = await filterJobData(jobData);
+  const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
 
   await browser.close();
 
-  await executeSheets(filteredJobs, "Jobmaster");
+  await executeSheets(uniqueFilteredJobs, "Jobmaster");
 
   const endingScriptTime = new Date().getTime();
   const calculateToMinutes = Math.floor(
@@ -132,14 +136,14 @@ const scrapeJobmasterLogic = async () => {
 
   return {
     jobDataLength: jobData.length,
-    filteredJobsLength: filteredJobs.length,
+    filteredJobsLength: uniqueFilteredJobs.length,
     operationTime: calculateToMinutes,
   };
 };
 
 const scrapeJobmaster = async (req, res) => {
   try {
-    const result = await scrapeJobmasterLogic();
+    const result = await retryFunction(scrapeJobmasterLogic, 3);
     res.status(201).json(
       `Executed Successfully. 
         Scraped from: ${result.jobDataLength} jobs, 

@@ -7,6 +7,7 @@ const { scrapeJobmasterLogic } = require("./jobmaster_controller");
 module.exports.resetSheetData = async (req, res) => {
   try {
     await resetSheetsLogic();
+
     const result = await executeScrapeFunctions([scrapeJobmasterLogic]);
 
     res.status(200).json(
@@ -16,6 +17,6 @@ module.exports.resetSheetData = async (req, res) => {
         Operation took: ${result.operationTime} Minutes`
     );
   } catch (err) {
-    res.status(500).json('Something went wrong..')
+    res.status(500).json("Something went wrong..");
   }
 };

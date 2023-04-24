@@ -67,7 +67,7 @@ async function authenticateSheet(auth) {
 function convertDataTo2DArray(data, website) {
   const result = [];
   for (const obj of data) {
-    const keyword = obj.keyword
+    const keyword = obj.keyword;
     const title = obj.title;
     const link = obj.link;
     const type = obj.type;
@@ -88,11 +88,9 @@ async function verifyNewData(sheets, data) {
     // console.log("No data found.");
     return data;
   }
-
   const filteredData = data.filter((newRow) => {
     const websiteName = newRow[0];
     const id = newRow[6];
-
     return !rows.some((row) => row[0] === websiteName && row[6] === id);
   });
 
@@ -114,7 +112,6 @@ async function appendDataToSheets(sheets, data2DArray) {
     spreadsheetId,
     range: `${sheetName}!A1:G1`,
   });
-
   if (!headerResponse.data.values || headerResponse.data.values.length === 0) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
@@ -160,13 +157,13 @@ async function resetSheetsLogic() {
   await clearSheets(sheets);
 }
 
-async function resetSheet(req, res){
+async function resetSheet(req, res) {
   try {
     await resetSheetsLogic();
     res.status(200).json("successfully reseted sheets");
   } catch (err) {
     res.status(500).json("something went wrong: " + err.message);
   }
-};
+}
 
 module.exports = { executeSheets, resetSheetsLogic, resetSheet };
