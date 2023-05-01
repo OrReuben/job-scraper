@@ -42,7 +42,6 @@ async function authorize() {
   }
 
   const credentials = JSON.parse(process.env.CREDENTIALS);
-
   const tempCredentialsFile = path.join(os.tmpdir(), "temp_credentials.json");
   fs.writeFileSync(tempCredentialsFile, JSON.stringify(credentials));
 
@@ -67,13 +66,10 @@ async function authenticateSheet(auth) {
 function convertDataTo2DArray(data, website) {
   const result = [];
   for (const obj of data) {
-    const keyword = obj.keyword;
-    const title = obj.title;
-    const link = obj.link;
-    const type = obj.type;
-    const location = obj.location;
-    const ID = link.split("=")[1];
-    result.push([website, keyword, title, link, type, location, ID]);
+    const { keyword, title, link, type, location, ID } = obj;
+
+    const hyperlink = `=HYPERLINK("${link}", "${link}")`;
+    result.push([website, keyword, title, hyperlink, type, location, ID]);
   }
   return result;
 }
@@ -85,12 +81,13 @@ async function verifyNewData(sheets, data) {
   });
   const rows = res.data.values;
   if (!rows || rows.length === 0) {
-    // console.log("No data found.");
     return data;
   }
   const filteredData = data.filter((newRow) => {
     const websiteName = newRow[0];
     const id = newRow[6];
+    // console.log(newRow);
+    // console.log(!rows.some((row) => row[0] === websiteName && row[6] === id));
     return !rows.some((row) => row[0] === websiteName && row[6] === id);
   });
 
@@ -116,7 +113,7 @@ async function appendDataToSheets(sheets, data2DArray) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `${sheetName}!A1:G1`,
-      valueInputOption: "RAW",
+      valueInputOption: "USER_ENTERED",
       resource: {
         values: [headers],
       },
@@ -126,7 +123,7 @@ async function appendDataToSheets(sheets, data2DArray) {
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: `${sheetName}!A:G`,
-    valueInputOption: "RAW",
+    valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     resource: {
       values: verifiedData,
@@ -151,6 +148,7 @@ async function executeSheets(allJobData, website) {
     console.error(error);
   }
 }
+
 async function resetSheetsLogic() {
   const auth = await authorize();
   const sheets = await authenticateSheet(auth);

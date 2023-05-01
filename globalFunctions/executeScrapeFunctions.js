@@ -8,12 +8,18 @@ const executeScrapeFunctions = async (scrapeFunctions) => {
   };
 
   for (const scrapeFunction of scrapeFunctions) {
-    const scrapeResult = await retryFunction(scrapeFunction, 2);
-    result.jobDataLength += scrapeResult.jobDataLength;
-    result.filteredJobsLength += scrapeResult.filteredJobsLength;
-    result.operationTime += scrapeResult.operationTime;
+    try {
+      const scrapeResult = await retryFunction(scrapeFunction, 2);
+      result.jobDataLength += scrapeResult.jobDataLength;
+      result.filteredJobsLength += scrapeResult.filteredJobsLength;
+      result.operationTime += scrapeResult.operationTime;
+    } catch (err) {
+      throw new Error(
+        `Error in function ${scrapeFunction.name}: ${err.message}`
+      );
+    }
   }
 
   return result;
 };
-module.exports = {executeScrapeFunctions}
+module.exports = { executeScrapeFunctions };

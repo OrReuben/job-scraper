@@ -10,6 +10,10 @@ const scrapingKeywords = [
   "Typescript",
   "Node",
   "Javascript",
+  "Angular",
+  "SQL",
+  "MongoDB",
+  "Python",
 ];
 
 const launchBrowser = async () => {
@@ -21,7 +25,7 @@ const navigateToPage = async (page, link) => {
 };
 
 const searchForKeyword = async (page, keyword, selectors) => {
-  await page.type("#q", keyword);
+  await page.type(selectors.selectorInput, keyword);
   await Promise.all([
     page.waitForNavigation(),
     page.click(selectors.submitBtn),
@@ -55,34 +59,32 @@ async function closePopupIfExists(page, closeButtonSelector) {
 
 const filterJobData = (jobData) => {
   const regex1 =
-    /(?:(?<=\s)|^)(?:3|4|5|6|7|שלוש|ארבע|חמש|שש|שבע)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-7](?:(?=\D)|$)/;
+    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/;
   const regex2 =
     /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/;
   const regex3 =
     /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/;
   const regex4 = /\d/;
 
-  return jobData.filter(({ requirements }) => {
-    if (regex1.test(requirements)) {
+  return jobData.filter(({ requirements, description }) => {
+    if (regex1.test(requirements) || regex1.test(description)) {
       return false;
-    } else if (regex2.test(requirements)) {
-      if (regex3.test(requirements)) {
-        return true;
-      }
-      return false;
-    } else if (regex3.test(requirements)) {
-      return true;
-    } else if (!regex4.test(requirements)) {
+    }
+    if (regex2.test(requirements) || regex2.test(description)) {
+      return regex3.test(requirements);
+    }
+    if (regex3.test(requirements) || regex3.test(description)) {
       return true;
     }
+    return !regex4.test(requirements);
   });
 };
 
 const filterUniqueLinks = (jobData) => {
   const uniqueLinks = new Set();
-  return jobData.filter(({ link }) => {
-    if (!uniqueLinks.has(link)) {
-      uniqueLinks.add(link);
+  return jobData.filter(({ ID }) => {
+    if (!uniqueLinks.has(ID)) {
+      uniqueLinks.add(ID);
       return true;
     }
     return false;

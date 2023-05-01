@@ -16,7 +16,7 @@ const getTotalPages = async (page) => {
   const pageCountRaw = await page.evaluate((el) => el.textContent, pageCountEl);
   const numberRegex = /\d+/g;
   const pageCount = Number(pageCountRaw.match(numberRegex)[0]);
-  return Math.ceil(pageCount / 10);
+  return Math.ceil(pageCount / 10) > 10 ? 10 : Math.ceil(pageCount / 10);
 };
 
 const processPages = async (page, totalPages, keyword) => {
@@ -27,7 +27,15 @@ const processPages = async (page, totalPages, keyword) => {
       `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`
     );
 
-    await page.waitForSelector(".JobItemRight");
+    try {
+      await page.waitForSelector(".JobItemRight", { timeout: 10000 });
+    } catch (err) {
+      if (err instanceof page.errors.TimeoutError) {
+        break;
+      } else {
+        throw err;
+      }
+    }
     const jobItems = await page.$$(".JobItemRight");
 
     for (let i = 0; i < jobItems.length; i++) {
@@ -66,8 +74,8 @@ const processPages = async (page, totalPages, keyword) => {
       const type = $("#enterJob .jobType").text().trim();
       const jobIdText = $("#enterJob .jobNumStyle").text().trim();
       const numberRegex = /\d+/g;
-      const jobId = jobIdText && jobIdText.match(numberRegex)[0];
-      const link = `https://www.jobmaster.co.il/jobs/checknum.asp?key=${jobId}`;
+      const ID = jobIdText.match(numberRegex)[0];
+      const link = `https://www.jobmaster.co.il/jobs/checknum.asp?key=${ID}`;
       const description = $("#jobFullDetails .jobDescription")
         .text()
         .trim()
@@ -85,6 +93,7 @@ const processPages = async (page, totalPages, keyword) => {
         link,
         description,
         requirements,
+        ID,
       };
       jobData.push(oneJobData);
     }
@@ -95,26 +104,24 @@ const processPages = async (page, totalPages, keyword) => {
 
 const scrapeJobmasterLogic = async () => {
   const startingScriptTime = new Date().getTime();
-  // const keywords = scrapingKeywords;
-  const keywords = ["Fullstack"];
-
+  const keywords = scrapingKeywords;
+  // const keywords = ["Angular"];
   const browser = await launchBrowser();
   const page = await browser.newPage();
+  const jobData = [];
 
   page.on("dialog", async (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
     await dialog.dismiss();
   });
 
-  const jobData = [];
-
   for (const keyword of keywords) {
     await navigateToPage(page, "https://www.jobmaster.co.il/");
     await searchForKeyword(page, keyword, {
+      selectorInput: "#q",
       submitBtn: ".submitFind",
       selectorExists: "#desktopResultsHeader",
     });
-
     await closePopupIfExists(page, "#modal_closebtn");
 
     const totalPages = await getTotalPages(page);
