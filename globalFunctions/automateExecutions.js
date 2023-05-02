@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "https://job-scraper-api.onrender.com",
 });
 
 const automateExecutions = async (time, route, daysInterval = 1) => {
