@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 
-const scrapingKeywords = [
+const SCRAPING_KEYWORDS = [
   "Fullstack",
   "React",
   "Frontend",
@@ -91,6 +91,15 @@ const filterUniqueLinks = (jobData) => {
   });
 };
 
+const getTotalPages = async (page, selector, itemsPerPage) => {
+  const pageCountEl = await page.$(selector);
+  const pageCountRaw = await page.evaluate((el) => el.textContent, pageCountEl);
+  const numberRegex = /\d+/g;
+  const matchedNumbers = pageCountRaw.match(numberRegex);
+  const pageCount = matchedNumbers ? Number(matchedNumbers[0]) : 0;
+  return Math.ceil(pageCount / itemsPerPage);
+};
+
 module.exports = {
   launchBrowser,
   navigateToPage,
@@ -98,5 +107,6 @@ module.exports = {
   closePopupIfExists,
   filterJobData,
   filterUniqueLinks,
-  scrapingKeywords,
+  getTotalPages,
+  SCRAPING_KEYWORDS,
 };

@@ -3,13 +3,15 @@ const { executeSheets } = require("../globalFunctions/google_sheets");
 const {
   launchBrowser,
   filterJobData,
-  scrapingKeywords,
+  SCRAPING_KEYWORDS,
   filterUniqueLinks,
-} = require("../globalFunctions/scrapingLogic");
+} = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
 const processPages = async (page, keyword) => {
   const jobData = [];
+  console.log(`DRUSHIM: Attempting to scrape the keyword: ${keyword}`);
+
   await page.goto(
     `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
   );
@@ -56,13 +58,14 @@ const processPages = async (page, keyword) => {
     };
     jobData.push(jobItemData);
   }
+  console.log(`DRUSHIM: Successfully scraped the keyword: ${keyword}`);
 
   return jobData;
 };
 
 const scrapeDrushimLogic = async () => {
   const startingScriptTime = new Date().getTime();
-    const keywords = scrapingKeywords;
+    const keywords = SCRAPING_KEYWORDS;
 //   const keywords = ["Fullstack", 'React'];
   const browser = await launchBrowser();
   const page = await browser.newPage();

@@ -140,10 +140,12 @@ async function clearSheets(sheets) {
 
 async function executeSheets(allJobData, website) {
   try {
+    console.log(`Attempting to post data for website: ${website}`);
     const auth = await authorize();
     const sheets = await authenticateSheet(auth);
     const rows = convertDataTo2DArray(allJobData, website);
     await appendDataToSheets(sheets, rows);
+    console.log(`Successfully posted data for website: ${website}`);
   } catch (error) {
     console.error(error);
   }
@@ -153,6 +155,7 @@ async function resetSheetsLogic() {
   const auth = await authorize();
   const sheets = await authenticateSheet(auth);
   await clearSheets(sheets);
+  console.log("Successfully cleared all sheets");
 }
 
 async function resetSheet(req, res) {

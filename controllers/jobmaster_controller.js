@@ -6,22 +6,15 @@ const {
   searchForKeyword,
   closePopupIfExists,
   filterJobData,
-  scrapingKeywords,
+  SCRAPING_KEYWORDS,
   filterUniqueLinks,
-} = require("../globalFunctions/scrapingLogic");
+  getTotalPages,
+} = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
-
-const getTotalPages = async (page) => {
-  const pageCountEl = await page.$("#desktopResultsHeader");
-  const pageCountRaw = await page.evaluate((el) => el.textContent, pageCountEl);
-  const numberRegex = /\d+/g;
-  const pageCount = Number(pageCountRaw.match(numberRegex)[0]);
-  return Math.ceil(pageCount / 10) > 10 ? 10 : Math.ceil(pageCount / 10);
-};
 
 const processPages = async (page, totalPages, keyword) => {
   const jobData = [];
-
+  console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
   for (let index = 0; index < totalPages; index++) {
     await page.goto(
       `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`
@@ -98,14 +91,14 @@ const processPages = async (page, totalPages, keyword) => {
       jobData.push(oneJobData);
     }
   }
-
+  console.log(`JOBMASTER: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
 
 const scrapeJobmasterLogic = async () => {
   const startingScriptTime = new Date().getTime();
-  const keywords = scrapingKeywords;
-  // const keywords = ["Angular"];
+  const keywords = SCRAPING_KEYWORDS;
+  // const keywords = ['ReactJS',"Angular"];
   const browser = await launchBrowser();
   const page = await browser.newPage();
   const jobData = [];
@@ -124,7 +117,8 @@ const scrapeJobmasterLogic = async () => {
     });
     await closePopupIfExists(page, "#modal_closebtn");
 
-    const totalPages = await getTotalPages(page);
+    let totalPages = await getTotalPages(page, "#desktopResultsHeader", 10);
+    totalPages = totalPages > 10 ? 10 : totalPages;
     const keywordJobData = await processPages(page, totalPages, keyword);
     jobData.push(...keywordJobData);
   }

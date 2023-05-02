@@ -5,6 +5,7 @@ const executeScrapeFunctions = async (scrapeFunctions) => {
     jobDataLength: 0,
     filteredJobsLength: 0,
     operationTime: 0,
+    errors: [],
   };
 
   for (const scrapeFunction of scrapeFunctions) {
@@ -14,12 +15,16 @@ const executeScrapeFunctions = async (scrapeFunctions) => {
       result.filteredJobsLength += scrapeResult.filteredJobsLength;
       result.operationTime += scrapeResult.operationTime;
     } catch (err) {
-      throw new Error(
-        `Error in function ${scrapeFunction.name}: ${err.message}`
-      );
+      result.errors.push({
+        functionName: scrapeFunction.name,
+        message: err.message,
+      });
     }
   }
 
   return result;
 };
+
+
+
 module.exports = { executeScrapeFunctions };

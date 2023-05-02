@@ -5,22 +5,16 @@ const {
   navigateToPage,
   searchForKeyword,
   filterJobData,
-  scrapingKeywords,
+  SCRAPING_KEYWORDS,
   filterUniqueLinks,
-} = require("../globalFunctions/scrapingLogic");
+  getTotalPages,
+} = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
-
-const getTotalPages = async (page) => {
-  const pageCountEl = await page.$("#resultsDetails");
-  const pageCountRaw = await page.evaluate((el) => el.textContent, pageCountEl);
-  const numberRegex = /\d+/g;
-  const matchedNumbers = pageCountRaw.match(numberRegex);
-  const pageCount = matchedNumbers ? Number(matchedNumbers[0]) : 0;
-  return Math.ceil(pageCount / 20);
-};
 
 const processPages = async (page, totalPages, keyword) => {
   const jobData = [];
+  console.log(`SQLINK: Attempting to scrape the keyword: ${keyword}`);
+
   for (let index = 0; index < totalPages; index++) {
     await page.goto(
       `https://www.sqlink.com/career/searchresults/?page=${index + 1}`
@@ -67,14 +61,14 @@ const processPages = async (page, totalPages, keyword) => {
       jobData.push(oneJobData);
     }
   }
-
+  console.log(`SQLINK: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
 
 const scrapeSQLinkLogic = async () => {
   const startingScriptTime = new Date().getTime();
-    const keywords = scrapingKeywords;
-//   const keywords = ["Fullstack"];
+  const keywords = SCRAPING_KEYWORDS;
+  //   const keywords = ["Fullstack"];
   const browser = await launchBrowser();
   const page = await browser.newPage();
   const jobData = [];
@@ -96,7 +90,7 @@ const scrapeSQLinkLogic = async () => {
       selectorExists: "#resultsDetails",
     });
 
-    const totalPages = await getTotalPages(page);
+    const totalPages = await getTotalPages(page, "#resultsDetails", 20);
     if (totalPages === null || totalPages === undefined) {
       continue;
     }
@@ -131,8 +125,12 @@ const scrapeSQLinkLogic = async () => {
 
   await Promise.all([page.waitForNavigation(), page.click("#searchButton")]);
 
-  const totalPages = await getTotalPages(page);
-  const keywordJobData = await processPages(page, totalPages, "Web Developement");
+  const totalPages = await getTotalPages(page, "#resultsDetails", 20);
+  const keywordJobData = await processPages(
+    page,
+    totalPages,
+    "Web Developement"
+  );
   jobData.push(...keywordJobData);
 
   const filteredJobs = await filterJobData(jobData);

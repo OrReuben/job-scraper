@@ -4,10 +4,12 @@ require("dotenv").config();
 const executeActionsRoute = require("./routes/execute_actions_route");
 const { automateExecutions } = require("./globalFunctions/automateExecutions");
 
-
 const schedule = [
-  { time: "11:05", route: "/execute/jobmaster" },
-  { time: "02:00", route: "/execute/reset", daysInterval: 3 },
+  { time: "01:00", route: "/execute/reset", daysInterval: 3 },
+  { time: "02:00", route: "/execute/jobmaster" },
+  { time: "03:00", route: "/execute/matrix" },
+  { time: "04:00", route: "/execute/drushim" },
+  { time: "05:00", route: "/execute/sqlink" },
 ];
 
 schedule.forEach(({ time, route, daysInterval }) => {

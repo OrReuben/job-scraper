@@ -5,12 +5,12 @@ const {
   navigateToPage,
   filterJobData,
   filterUniqueLinks,
-} = require("../globalFunctions/scrapingLogic");
+} = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
 const processPages = async (page) => {
   const jobData = [];
-
+  console.log('MATRIX: Attempting to scrape...')
   await page.waitForSelector(".job-item");
   const jobItems = await page.$$(".job-item");
 
@@ -50,6 +50,7 @@ const processPages = async (page) => {
 
     jobData.push(jobItemData);
   }
+  console.log('MATRIX: Succesfully scraped!')
 
   return jobData;
 };
