@@ -7,7 +7,7 @@ const { automateExecutions } = require("./globalFunctions/automateExecutions");
 const schedule = [
   { time: "01:00", route: "/execute/reset", daysInterval: 3 },
   { time: "02:00", route: "/execute/jobmaster" },
-  { time: "10:40", route: "/execute/matrix" },
+  { time: "11:05", route: "/execute/matrix" },
   { time: "04:00", route: "/execute/drushim" },
   { time: "05:00", route: "/execute/sqlink" },
 ];
