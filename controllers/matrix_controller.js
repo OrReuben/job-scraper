@@ -23,8 +23,9 @@ const processPages = async (page) => {
     const title = $(".job-title a").text().trim();
     const location = $(".job-areas").text().trim();
     const type = "לא צוין";
-    const jobIdText = await page.evaluate((el) => el.id, jobItem);
-    const ID = /\d+/.exec(jobIdText)[0];
+    // const jobIdText = await page.evaluate((el) => el.id, jobItem);
+    // const ID = /\d+/.exec(jobIdText)[0];
+    const ID = $(".add-to-my-jobs-id").text().trim();
     const linkEncoded = $(".job-title a").attr("href");
     const link = decodeURIComponent(linkEncoded);
     const description = $(".job-areas + p")
