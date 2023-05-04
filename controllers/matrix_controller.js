@@ -5,6 +5,7 @@ const {
   navigateToPage,
   filterJobData,
   filterUniqueLinks,
+  setDefaultPageParams,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 

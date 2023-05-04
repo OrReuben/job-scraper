@@ -17,7 +17,7 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: "new" });
+  return await puppeteer.launch({ headless: "new", timeout:60000 });
 };
 
 const setDefaultPageParams = (page) => {

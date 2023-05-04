@@ -9,6 +9,7 @@ const {
   SCRAPING_KEYWORDS,
   filterUniqueLinks,
   getTotalPages,
+  setDefaultPageParams,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
