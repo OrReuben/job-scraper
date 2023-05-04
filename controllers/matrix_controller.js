@@ -50,7 +50,6 @@ const processPages = async (page) => {
 
     jobData.push(jobItemData);
   }
-  console.log('MATRIX: Succesfully scraped!')
 
   return jobData;
 };
@@ -58,7 +57,9 @@ const processPages = async (page) => {
 const scrapeMatrixLogic = async () => {
   console.log('MATRIX: Attempting to scrape...')
   const startingScriptTime = new Date().getTime();
+  console.log('MATRIX: Opening up the browser...')
   const browser = await launchBrowser();
+  console.log('MATRIX: Creating a new page..')
   const page = await browser.newPage();
   const jobData = [];
 
@@ -66,13 +67,14 @@ const scrapeMatrixLogic = async () => {
     console.log(`Dialog message: ${dialog.message()}`);
     await dialog.dismiss();
   });
+  console.log('MATRIX: Navigating to page..')
 
   await navigateToPage(
     page,
     "https://www.matrix.co.il/jobs/%D7%9E%D7%A9%D7%A8%D7%95%D7%AA/%d7%a4%d7%99%d7%aa%d7%95%d7%97-%d7%aa%d7%95%d7%9b%d7%a0%d7%94/"
   );
 
-
+  console.log('MATRIX: Processing pages...')
   const keywordJobData = await processPages(page);
 
   jobData.push(...keywordJobData);
@@ -87,6 +89,7 @@ const scrapeMatrixLogic = async () => {
   const calculateToMinutes = Math.floor(
     (endingScriptTime - startingScriptTime) / 1000 / 60
   );
+  console.log('MATRIX: Succesfully scraped!')
 
   return {
     jobDataLength: jobData.length,
