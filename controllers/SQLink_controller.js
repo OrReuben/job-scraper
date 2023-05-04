@@ -67,11 +67,14 @@ const processPages = async (page, totalPages, keyword) => {
 
 const scrapeSQLinkLogic = async () => {
   console.log(`SCRAPING SQLINK...`);
-
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   //   const keywords = ["Fullstack"];
+
+  console.log("SQLINK: Opening up the browser...");
   const browser = await launchBrowser();
+
+  console.log("SQLINK: Creating a new page..");
   const page = await browser.newPage();
   const jobData = [];
 
@@ -80,28 +83,37 @@ const scrapeSQLinkLogic = async () => {
     await dialog.dismiss();
   });
 
+  console.log("SQLINK: Navigating to page..");
   await navigateToPage(
     page,
-    "https://www.sqlink.com/career/%D7%A4%D7%99%D7%AA%D7%95%D7%97-%D7%AA%D7%95%D7%9B%D7%A0%D7%94-webmobile/"
+    decodeURIComponent(
+      "https://www.sqlink.com/career/%D7%A4%D7%99%D7%AA%D7%95%D7%97-%D7%AA%D7%95%D7%9B%D7%A0%D7%94-webmobile/"
+    )
   );
 
   for (const keyword of keywords) {
+    console.log(`SQLINK: Searching for the keyword: ${keyword} `);
     await searchForKeyword(page, keyword, {
       selectorInput: ".searchInputText",
       submitBtn: "#searchButton",
       selectorExists: "#resultsDetails",
     });
 
+    console.log("SQLINK: Getting the amount of pages...");
     const totalPages = await getTotalPages(page, "#resultsDetails", 20);
     if (totalPages === null || totalPages === undefined) {
       continue;
     }
-    const keywordJobData = await processPages(page, totalPages, keyword);
 
+    console.log("SQLINK: Processing pages...");
+    const keywordJobData = await processPages(page, totalPages, keyword);
     jobData.push(...keywordJobData);
   }
 
+  console.log("SQLINK: Navigating to page..");
   await navigateToPage(page, "https://www.sqlink.com/career/web/");
+
+  console.log("SQLINK: Clicking selectors..");
   await page.waitForSelector("#drop1");
   await page.click("#drop1");
   await page.evaluate(() => {
@@ -127,7 +139,10 @@ const scrapeSQLinkLogic = async () => {
 
   await Promise.all([page.waitForNavigation(), page.click("#searchButton")]);
 
+  console.log("SQLINK: Getting the amount of pages...");
   const totalPages = await getTotalPages(page, "#resultsDetails", 20);
+
+  console.log("SQLINK: Processing pages...");
   const keywordJobData = await processPages(
     page,
     totalPages,

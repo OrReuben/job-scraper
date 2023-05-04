@@ -11,7 +11,7 @@ const { retryFunction } = require("../globalFunctions/retryFunction");
 const processPages = async (page, keyword) => {
   const jobData = [];
   console.log(`DRUSHIM: Attempting to scrape the keyword: ${keyword}`);
-
+  console.log('DRUSHIM: Navigating to page..')
   await page.goto(
     `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
   );
@@ -65,10 +65,15 @@ const processPages = async (page, keyword) => {
 
 const scrapeDrushimLogic = async () => {
   console.log(`SCRAPING DRUSHIM...`);
+
   const startingScriptTime = new Date().getTime();
-    const keywords = SCRAPING_KEYWORDS;
-//   const keywords = ["Fullstack", 'React'];
+  const keywords = SCRAPING_KEYWORDS;
+  //   const keywords = ["Fullstack", 'React'];
+
+  console.log("DRUSHIM: Opening up the browser...");
   const browser = await launchBrowser();
+
+  console.log("DRUSHIM: Creating a new page..");
   const page = await browser.newPage();
   const jobData = [];
 
@@ -78,9 +83,11 @@ const scrapeDrushimLogic = async () => {
   });
 
   for (const keyword of keywords) {
+    console.log('DRUSHIM: Processing pages...')
     const keywordJobData = await processPages(page, keyword);
     jobData.push(...keywordJobData);
   }
+
   const filteredJobs = await filterJobData(jobData);
   const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
 
