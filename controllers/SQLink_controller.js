@@ -66,6 +66,8 @@ const processPages = async (page, totalPages, keyword) => {
 };
 
 const scrapeSQLinkLogic = async () => {
+  console.log(`SCRAPING SQLINK...`);
+
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   //   const keywords = ["Fullstack"];
@@ -144,6 +146,7 @@ const scrapeSQLinkLogic = async () => {
   const calculateToMinutes = Math.floor(
     (endingScriptTime - startingScriptTime) / 1000 / 60
   );
+  console.log(`FINISHED SCRAPING SQLINK...`);
 
   return {
     jobDataLength: jobData.length,

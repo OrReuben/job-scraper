@@ -96,6 +96,8 @@ const processPages = async (page, totalPages, keyword) => {
 };
 
 const scrapeJobmasterLogic = async () => {
+  console.log(`SCRAPING JOBMASTER...`);
+
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   // const keywords = ['ReactJS',"Angular"];
@@ -134,6 +136,7 @@ const scrapeJobmasterLogic = async () => {
   const calculateToMinutes = Math.floor(
     (endingScriptTime - startingScriptTime) / 1000 / 60
   );
+  console.log(`FINISHED SCRAPING JOBMASTER...`);
 
   return {
     jobDataLength: jobData.length,

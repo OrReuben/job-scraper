@@ -10,7 +10,6 @@ const { retryFunction } = require("../globalFunctions/retryFunction");
 
 const processPages = async (page) => {
   const jobData = [];
-  console.log('MATRIX: Attempting to scrape...')
   await page.waitForSelector(".job-item");
   const jobItems = await page.$$(".job-item");
 
@@ -57,6 +56,7 @@ const processPages = async (page) => {
 };
 
 const scrapeMatrixLogic = async () => {
+  console.log('MATRIX: Attempting to scrape...')
   const startingScriptTime = new Date().getTime();
   const browser = await launchBrowser();
   const page = await browser.newPage();

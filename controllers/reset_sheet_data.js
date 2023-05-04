@@ -9,15 +9,15 @@ const { scrapeSQLinkLogic } = require("./SQLink_controller");
 
 module.exports.resetSheetData = async (req, res) => {
   try {
+    console.log('ATTEMPTING TO RESET DATA...');
     await resetSheetsLogic();
-
     const result = await executeScrapeFunctions([
       scrapeJobmasterLogic,
       scrapeMatrixLogic,
       scrapeDrushimLogic,
       scrapeSQLinkLogic,
     ]);
-
+    console.log('FINISHED RESETTING DATA...');
     if (result.errors.length === 0) {
       res.status(200).json(
         `Executed Successfully. 

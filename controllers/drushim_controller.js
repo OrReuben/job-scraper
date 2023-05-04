@@ -64,6 +64,7 @@ const processPages = async (page, keyword) => {
 };
 
 const scrapeDrushimLogic = async () => {
+  console.log(`SCRAPING DRUSHIM...`);
   const startingScriptTime = new Date().getTime();
     const keywords = SCRAPING_KEYWORDS;
 //   const keywords = ["Fullstack", 'React'];
@@ -91,6 +92,7 @@ const scrapeDrushimLogic = async () => {
   const calculateToMinutes = Math.floor(
     (endingScriptTime - startingScriptTime) / 1000 / 60
   );
+  console.log(`FINISHED SCRAPING DRUSHIM...`);
 
   return {
     jobDataLength: jobData.length,
