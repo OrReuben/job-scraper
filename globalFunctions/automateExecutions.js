@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const axiosInstance = axios.create({
-  baseURL: "https://job-scraper-api.onrender.com",
+  baseURL: process.env.BASE_URL,
 });
 
 const lastExecutions = {};
