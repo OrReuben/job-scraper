@@ -21,7 +21,6 @@ const launchBrowser = async () => {
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
-      "--single-process",
       "--no-zygote",
     ],
     executablePath:
