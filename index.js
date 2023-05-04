@@ -18,6 +18,9 @@ schedule.forEach(({ time, route, daysInterval }) => {
 
 app.use(express.json());
 app.use("/execute", executeActionsRoute);
+app.use("/ping", (req, res) => {
+  res.status(200).json("pinged");
+});
 
 app.listen(process.env.PORT || 5000, () =>
   console.log(`Server started on ${process.env.PORT || 5000}`)

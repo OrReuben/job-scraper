@@ -4,6 +4,11 @@ const axiosInstance = axios.create({
   baseURL: process.env.BASE_URL,
 });
 
+setInterval(async () => {
+  const {data} = await axiosInstance.get("/ping");
+  console.log(data);
+}, 300000);
+
 const lastExecutions = {};
 
 const automateExecutions = async (time, route, daysInterval = 1) => {
@@ -28,7 +33,8 @@ const automateExecutions = async (time, route, daysInterval = 1) => {
   setTimeout(async () => {
     const currentDate = new Date();
     const currentMinute = currentDate.getMinutes();
-    const lastExecutionMinute = lastExecutions[route] && lastExecutions[route].getMinutes();
+    const lastExecutionMinute =
+      lastExecutions[route] && lastExecutions[route].getMinutes();
     if (lastExecutionMinute !== currentMinute) {
       console.log(`Starting to automate the route: ${route}`);
       try {
@@ -43,6 +49,5 @@ const automateExecutions = async (time, route, daysInterval = 1) => {
     automateExecutions(time, route, daysInterval);
   }, timeDifference);
 };
-
 
 module.exports = { automateExecutions };
