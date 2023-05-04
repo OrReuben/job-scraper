@@ -17,7 +17,12 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: 'new' });
+  return await puppeteer.launch({ headless: "new" });
+};
+
+const setDefaultPageParams = (page) => {
+  page.setDefaultNavigationTimeout(60000);
+  page.setDefaultTimeout(60000);
 };
 
 const navigateToPage = async (page, link) => {
@@ -108,5 +113,6 @@ module.exports = {
   filterJobData,
   filterUniqueLinks,
   getTotalPages,
+  setDefaultPageParams,
   SCRAPING_KEYWORDS,
 };

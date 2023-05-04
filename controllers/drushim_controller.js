@@ -5,6 +5,7 @@ const {
   filterJobData,
   SCRAPING_KEYWORDS,
   filterUniqueLinks,
+  setDefaultPageParams,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
@@ -69,13 +70,16 @@ const scrapeDrushimLogic = async () => {
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   //   const keywords = ["Fullstack", 'React'];
+  const jobData = [];
 
   console.log("DRUSHIM: Opening up the browser...");
   const browser = await launchBrowser();
 
   console.log("DRUSHIM: Creating a new page..");
   const page = await browser.newPage();
-  const jobData = [];
+    
+  console.log("DRUSHIM: Setting default page settings..");
+  setDefaultPageParams(page)
 
   page.on("dialog", async (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);

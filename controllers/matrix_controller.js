@@ -55,20 +55,26 @@ const processPages = async (page) => {
 };
 
 const scrapeMatrixLogic = async () => {
+  const jobData = [];
+
   console.log("MATRIX: Attempting to scrape...");
   const startingScriptTime = new Date().getTime();
+
   console.log("MATRIX: Opening up the browser...");
   const browser = await launchBrowser();
+
   console.log("MATRIX: Creating a new page..");
   const page = await browser.newPage();
-  const jobData = [];
+
+  console.log("MATRIX: Setting default page settings..");
+  setDefaultPageParams(page);
 
   page.on("dialog", async (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
     await dialog.dismiss();
   });
-  console.log("MATRIX: Navigating to page..");
 
+  console.log("MATRIX: Navigating to page..");
   await navigateToPage(
     page,
     decodeURIComponent(
@@ -78,7 +84,6 @@ const scrapeMatrixLogic = async () => {
 
   console.log("MATRIX: Processing pages...");
   const keywordJobData = await processPages(page);
-
   jobData.push(...keywordJobData);
 
   const filteredJobs = await filterJobData(jobData);

@@ -101,13 +101,16 @@ const scrapeJobmasterLogic = async () => {
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   // const keywords = ['ReactJS',"Angular"];
+  const jobData = [];
 
-  console.log("SQLINK: Opening up the browser...");
+  console.log("JOBMASTER: Opening up the browser...");
   const browser = await launchBrowser();
 
-  console.log("SQLINK: Creating a new page..");
+  console.log("JOBMASTER: Creating a new page..");
   const page = await browser.newPage();
-  const jobData = [];
+
+  console.log("JOBMASTER: Setting default page settings..");
+  setDefaultPageParams(page)
 
   page.on("dialog", async (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
@@ -115,10 +118,10 @@ const scrapeJobmasterLogic = async () => {
   });
 
   for (const keyword of keywords) {
-    console.log("SQLINK: Navigating to page..");
+    console.log("JOBMASTER: Navigating to page..");
     await navigateToPage(page, "https://www.jobmaster.co.il/");
 
-    console.log(`SQLINK: Searching for the keyword: ${keyword} `);
+    console.log(`JOBMASTER: Searching for the keyword: ${keyword} `);
     await searchForKeyword(page, keyword, {
       selectorInput: "#q",
       submitBtn: ".submitFind",
@@ -127,11 +130,11 @@ const scrapeJobmasterLogic = async () => {
 
     await closePopupIfExists(page, "#modal_closebtn");
 
-    console.log("SQLINK: Getting the amount of pages...");
+    console.log("JOBMASTER: Getting the amount of pages...");
     let totalPages = await getTotalPages(page, "#desktopResultsHeader", 10);
     totalPages = totalPages > 10 ? 10 : totalPages;
 
-    console.log("SQLINK: Processing pages...");
+    console.log("JOBMASTER: Processing pages...");
     const keywordJobData = await processPages(page, totalPages, keyword);
     jobData.push(...keywordJobData);
   }
