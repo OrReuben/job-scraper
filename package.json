@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node node_modules/puppeteer/install.js",
-    "start": "node index.js"
+    "start": "node index"
   },
   "keywords": [],
   "author": "",
