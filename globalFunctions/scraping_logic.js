@@ -17,13 +17,7 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  const browserFetcher = puppeteer.createBrowserFetcher();
-  const revisionInfo = await browserFetcher.download("113.0.5672.63");
-
-  return await puppeteer.launch({
-    executablePath: revisionInfo.executablePath,
-    headless: "new",
-  });
+  return await puppeteer.launch({ headless: 'new' });
 };
 
 const navigateToPage = async (page, link) => {
