@@ -18,6 +18,7 @@ const processPages = async (page, keyword, totalPages) => {
   console.log(`SQLINK: Attempting to scrape the keyword: ${keyword}`);
 
   for (let index = 0; index < totalPages; index++) {
+    index + 1 % 5 === 0 && console.log('+5 Pages scraped');
     await page.goto(
       `https://www.sqlink.com/career/searchresults/?page=${index + 1}`
     );
@@ -70,8 +71,8 @@ const processPages = async (page, keyword, totalPages) => {
 const scrapeSQLinkLogic = async () => {
   console.log(`SCRAPING SQLINK...`);
   const startingScriptTime = new Date().getTime();
-  // const keywords = SCRAPING_KEYWORDS;
-  const keywords = ["Fullstack"];
+  const keywords = SCRAPING_KEYWORDS;
+  // const keywords = ["Fullstack"];
   const jobData = [];
 
   console.log("SQLINK: Opening up the browser...");

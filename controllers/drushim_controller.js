@@ -69,8 +69,8 @@ const scrapeDrushimLogic = async () => {
   console.log(`SCRAPING DRUSHIM...`);
 
   const startingScriptTime = new Date().getTime();
-  // const keywords = SCRAPING_KEYWORDS;
-  const keywords = ["Fullstack", "React"];
+  const keywords = SCRAPING_KEYWORDS;
+  // const keywords = ["Fullstack", "React"];
   const jobData = [];
 
   console.log("DRUSHIM: Opening up the browser...");

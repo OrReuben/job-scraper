@@ -29,3 +29,4 @@ const newArr = strArr.filter((item) => {
  
 
 
+console.log(10%5);
