@@ -6,13 +6,14 @@ const {
   SCRAPING_KEYWORDS,
   filterUniqueLinks,
   setDefaultPageParams,
+  processKeyword,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
 const processPages = async (page, keyword) => {
   const jobData = [];
   console.log(`DRUSHIM: Attempting to scrape the keyword: ${keyword}`);
-  console.log('DRUSHIM: Navigating to page..')
+  console.log("DRUSHIM: Navigating to page..");
   await page.goto(
     `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
   );
@@ -68,59 +69,74 @@ const scrapeDrushimLogic = async () => {
   console.log(`SCRAPING DRUSHIM...`);
 
   const startingScriptTime = new Date().getTime();
-  const keywords = SCRAPING_KEYWORDS;
-  //   const keywords = ["Fullstack", 'React'];
+  // const keywords = SCRAPING_KEYWORDS;
+  const keywords = ["Fullstack", "React"];
   const jobData = [];
 
   console.log("DRUSHIM: Opening up the browser...");
   const browser = await launchBrowser();
+  
+  try {
+    console.log("DRUSHIM: Creating a new page..");
+    const page = await browser.newPage();
 
-  console.log("DRUSHIM: Creating a new page..");
-  const page = await browser.newPage();
-    
-  console.log("DRUSHIM: Setting default page settings..");
-  setDefaultPageParams(page)
+    console.log("DRUSHIM: Setting default page settings..");
+    setDefaultPageParams(page);
 
-  page.on("dialog", async (dialog) => {
-    console.log(`Dialog message: ${dialog.message()}`);
-    await dialog.dismiss();
-  });
+    page.on("dialog", async (dialog) => {
+      console.log(`Dialog message: ${dialog.message()}`);
+      await dialog.dismiss();
+    });
 
-  for (const keyword of keywords) {
-    console.log('DRUSHIM: Processing pages...')
-    const keywordJobData = await processPages(page, keyword);
-    jobData.push(...keywordJobData);
+    for (const keyword of keywords) {
+      console.log("DRUSHIM: Processing pages...");
+      const keywordJobData = await processKeyword(
+        page,
+        keyword,
+        null,
+        processPages
+      );
+      jobData.push(...keywordJobData);
+    }
+
+    const filteredJobs = await filterJobData(jobData);
+    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+
+    await browser.close();
+
+    await executeSheets(uniqueFilteredJobs, "Drushim");
+
+    const endingScriptTime = new Date().getTime();
+    const calculateToMinutes = Math.floor(
+      (endingScriptTime - startingScriptTime) / 1000 / 60
+    );
+    console.log(`FINISHED SCRAPING DRUSHIM...`);
+
+    return {
+      jobDataLength: jobData.length,
+      filteredJobsLength: uniqueFilteredJobs.length,
+      operationTime: calculateToMinutes,
+    };
+  } catch (err) {
+    console.log("Something went wrong.. " + err.message);
+    browser.close();
+    throw new Error();
   }
-
-  const filteredJobs = await filterJobData(jobData);
-  const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
-
-  await browser.close();
-
-  await executeSheets(uniqueFilteredJobs, "Drushim");
-
-  const endingScriptTime = new Date().getTime();
-  const calculateToMinutes = Math.floor(
-    (endingScriptTime - startingScriptTime) / 1000 / 60
-  );
-  console.log(`FINISHED SCRAPING DRUSHIM...`);
-
-  return {
-    jobDataLength: jobData.length,
-    filteredJobsLength: uniqueFilteredJobs.length,
-    operationTime: calculateToMinutes,
-  };
 };
 
 const scrapeDrushim = async (req, res) => {
   try {
-    const result = await retryFunction(scrapeDrushimLogic, 3);
+    const result = await retryFunction(scrapeDrushimLogic, 2);
     res.status(201).json(
       `Executed Successfully. 
         Scraped from: ${result.jobDataLength} jobs, 
         resulted in ${result.filteredJobsLength} jobs. 
         Operation took: ${result.operationTime} Minutes`
     );
+    console.log(`Executed Successfully. 
+    Scraped from: ${result.jobDataLength} jobs, 
+    resulted in ${result.filteredJobsLength} jobs. 
+    Operation took: ${result.operationTime} Minutes`);
   } catch (err) {
     res.status(500).json("Something went wrong: " + err.message);
   }

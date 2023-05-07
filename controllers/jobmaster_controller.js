@@ -3,17 +3,17 @@ const { executeSheets } = require("../globalFunctions/google_sheets");
 const {
   launchBrowser,
   navigateToPage,
-  searchForKeyword,
   closePopupIfExists,
   filterJobData,
   SCRAPING_KEYWORDS,
   filterUniqueLinks,
   getTotalPages,
   setDefaultPageParams,
+  processKeyword,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
-const processPages = async (page, totalPages, keyword) => {
+const processPages = async (page, keyword, totalPages) => {
   const jobData = [];
   console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
   for (let index = 0; index < totalPages; index++) {
@@ -40,7 +40,7 @@ const processPages = async (page, totalPages, keyword) => {
         await Promise.race([
           page.waitForSelector("#enterJob .jobNumStyle"),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout")), 2000)
+            setTimeout(() => reject(new Error("Timeout")), 5000)
           ),
         ]);
       } catch (err) {
@@ -101,74 +101,106 @@ const scrapeJobmasterLogic = async () => {
 
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ['ReactJS',"Angular"];
+  // const keywords = ["ReactJS", "Angular"];
   const jobData = [];
 
   console.log("JOBMASTER: Opening up the browser...");
   const browser = await launchBrowser();
+  try {
+    console.log("JOBMASTER: Creating a new page..");
+    const page = await browser.newPage();
 
-  console.log("JOBMASTER: Creating a new page..");
-  const page = await browser.newPage();
+    console.log("JOBMASTER: Setting default page settings..");
+    setDefaultPageParams(page);
 
-  console.log("JOBMASTER: Setting default page settings..");
-  setDefaultPageParams(page)
-
-  page.on("dialog", async (dialog) => {
-    console.log(`Dialog message: ${dialog.message()}`);
-    await dialog.dismiss();
-  });
-
-  for (const keyword of keywords) {
-    console.log("JOBMASTER: Navigating to page..");
-    await navigateToPage(page, "https://www.jobmaster.co.il/");
-
-    console.log(`JOBMASTER: Searching for the keyword: ${keyword} `);
-    await searchForKeyword(page, keyword, {
-      selectorInput: "#q",
-      submitBtn: ".submitFind",
-      selectorExists: "#desktopResultsHeader",
+    page.on("dialog", async (dialog) => {
+      console.log(`Dialog message: ${dialog.message()}`);
+      await dialog.dismiss();
     });
 
-    await closePopupIfExists(page, "#modal_closebtn");
+    const maxRetries = 3;
 
-    console.log("JOBMASTER: Getting the amount of pages...");
-    let totalPages = await getTotalPages(page, "#desktopResultsHeader", 10);
-    totalPages = totalPages > 10 ? 10 : totalPages;
+    for (const keyword of keywords) {
+      console.log("JOBMASTER: Navigating to page..");
+      let navigateSuccess = false;
+      let navigateAttempts = 0;
 
-    console.log("JOBMASTER: Processing pages...");
-    const keywordJobData = await processPages(page, totalPages, keyword);
-    jobData.push(...keywordJobData);
+      while (!navigateSuccess && navigateAttempts < maxRetries) {
+        try {
+          await navigateToPage(
+            page,
+            `https://www.jobmaster.co.il/jobs/?currPage=1&q=${keyword}`
+          );
+          navigateSuccess = true;
+        } catch (err) {
+          navigateAttempts++;
+          if (navigateAttempts === maxRetries) {
+            console.log(
+              `Failed to navigate to page ${keyword} after ${maxRetries} retries: ${err.message}`
+            );
+            continue;
+          }
+        }
+      }
+
+      if (!navigateSuccess) {
+        continue;
+      }
+
+      await closePopupIfExists(page, "#modal_closebtn");
+
+      console.log("JOBMASTER: Getting the amount of pages...");
+      let totalPages = await getTotalPages(page, "#desktopResultsHeader", 10);
+      totalPages = totalPages > 10 ? 10 : totalPages;
+
+      console.log("JOBMASTER: Processing pages...");
+      const keywordJobData = await processKeyword(
+        page,
+        keyword,
+        totalPages,
+        processPages
+      );
+      jobData.push(...keywordJobData);
+    }
+
+    const filteredJobs = await filterJobData(jobData);
+    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+
+    await browser.close();
+
+    await executeSheets(uniqueFilteredJobs, "Jobmaster");
+
+    const endingScriptTime = new Date().getTime();
+    const calculateToMinutes = Math.floor(
+      (endingScriptTime - startingScriptTime) / 1000 / 60
+    );
+    console.log(`FINISHED SCRAPING JOBMASTER...`);
+
+    return {
+      jobDataLength: jobData.length,
+      filteredJobsLength: uniqueFilteredJobs.length,
+      operationTime: calculateToMinutes,
+    };
+  } catch (err) {
+    console.log("Something went wrong.. " + err.message);
+    browser.close();
+    throw new Error();
   }
-
-  const filteredJobs = await filterJobData(jobData);
-  const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
-
-  await browser.close();
-
-  await executeSheets(uniqueFilteredJobs, "Jobmaster");
-
-  const endingScriptTime = new Date().getTime();
-  const calculateToMinutes = Math.floor(
-    (endingScriptTime - startingScriptTime) / 1000 / 60
-  );
-  console.log(`FINISHED SCRAPING JOBMASTER...`);
-
-  return {
-    jobDataLength: jobData.length,
-    filteredJobsLength: uniqueFilteredJobs.length,
-    operationTime: calculateToMinutes,
-  };
 };
 
 const scrapeJobmaster = async (req, res) => {
   try {
-    const result = await retryFunction(scrapeJobmasterLogic, 3);
+    const result = await retryFunction(scrapeJobmasterLogic, 2);
     res.status(201).json(
       `Executed Successfully. 
         Scraped from: ${result.jobDataLength} jobs, 
         resulted in ${result.filteredJobsLength} jobs. 
         Operation took: ${result.operationTime} Minutes`
     );
+    console.log(`Executed Successfully. 
+    Scraped from: ${result.jobDataLength} jobs, 
+    resulted in ${result.filteredJobsLength} jobs. 
+    Operation took: ${result.operationTime} Minutes`);
   } catch (err) {
     res.status(500).json("Something went wrong: " + err.message);
   }

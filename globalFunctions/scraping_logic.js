@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const { retryFunction } = require("./retryFunction");
 
 const SCRAPING_KEYWORDS = [
   "Fullstack",
@@ -17,7 +18,7 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: "new", timeout:60000 });
+  return await puppeteer.launch({ headless: 'new', timeout: 60000 });
 };
 
 const setDefaultPageParams = (page) => {
@@ -105,6 +106,22 @@ const getTotalPages = async (page, selector, itemsPerPage) => {
   return Math.ceil(pageCount / itemsPerPage);
 };
 
+const processKeyword = async (page, keyword, totalPages = null, processPages) => {
+  try {
+    const keywordJobData = await retryFunction(
+      () => processPages(page, keyword, totalPages),
+      3,
+      keyword
+    );
+    return keywordJobData;
+  } catch (err) {
+    console.log(
+      `Failed to process keyword ${keyword} after 3 retries: ${err.message}`
+    );
+    return [];
+  }
+};
+
 module.exports = {
   launchBrowser,
   navigateToPage,
@@ -114,5 +131,6 @@ module.exports = {
   filterUniqueLinks,
   getTotalPages,
   setDefaultPageParams,
+  processKeyword,
   SCRAPING_KEYWORDS,
 };
