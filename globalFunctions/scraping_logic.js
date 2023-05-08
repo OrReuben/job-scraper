@@ -18,12 +18,12 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: 'new', timeout: 60000 });
+  return await puppeteer.launch({ headless: "new", timeout: 90000 });
 };
 
 const setDefaultPageParams = (page) => {
-  page.setDefaultNavigationTimeout(60000);
-  page.setDefaultTimeout(60000);
+  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(90000);
 };
 
 const navigateToPage = async (page, link) => {
@@ -65,14 +65,19 @@ async function closePopupIfExists(page, closeButtonSelector) {
 
 const filterJobData = (jobData) => {
   const regex1 =
-    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/;
+    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|three|four|five|six|seven|eight|nine)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/i;
   const regex2 =
-    /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/;
+    /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/i;
   const regex3 =
-    /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/;
+    /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/i;
   const regex4 = /\d/;
+  const titleRegex =
+    /(?:(?<=\s)|^)(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי)(?:(?=\s)|$)|(?:(?<=\D)|^)(?:(?=\D)|$)/i;
 
-  return jobData.filter(({ requirements, description }) => {
+  return jobData.filter(({ requirements, description, title }) => {
+    if (titleRegex.test(title)) {
+      return false;
+    }
     if (regex1.test(requirements) || regex1.test(description)) {
       return false;
     }
@@ -106,7 +111,12 @@ const getTotalPages = async (page, selector, itemsPerPage) => {
   return Math.ceil(pageCount / itemsPerPage);
 };
 
-const processKeyword = async (page, keyword, totalPages = null, processPages) => {
+const processKeyword = async (
+  page,
+  keyword,
+  totalPages = null,
+  processPages
+) => {
   try {
     const keywordJobData = await retryFunction(
       () => processPages(page, keyword, totalPages),

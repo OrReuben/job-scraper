@@ -17,7 +17,7 @@ const processPages = async (page, keyword, totalPages) => {
   const jobData = [];
   console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
   for (let index = 0; index < totalPages; index++) {
-    index + 1 % 5 === 0 && console.log('+5 Pages scraped');
+    (index + 1) % 5 === 0 && console.log('+5 Pages scraped');
     await page.goto(
       `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`
     );
@@ -78,7 +78,7 @@ const processPages = async (page, keyword, totalPages) => {
       const requirements = $("#jobFullDetails .jobRequirements")
         .text()
         .trim()
-        .replace(/[\n\t]+/g, " ");
+        .replace(/[\n\t]+/g, " ");  
 
       const oneJobData = {
         keyword,

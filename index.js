@@ -6,10 +6,10 @@ const { automateExecutions } = require("./globalFunctions/automateExecutions");
 
 const schedule = [
   { time: "00:00", route: "/execute/reset", daysInterval: 3 },
-  { time: "03:00", route: "/execute/jobmaster" },
-  { time: "06:00", route: "/execute/matrix" },
-  { time: "07:00", route: "/execute/drushim" },
-  { time: "10:00", route: "/execute/sqlink" },
+  { time: "12:00", route: "/execute/jobmaster" },
+  { time: "15:00", route: "/execute/matrix" },
+  { time: "15:30", route: "/execute/drushim" },
+  { time: "18:00", route: "/execute/sqlink" },
 ];
 
 schedule.forEach(({ time, route, daysInterval }) => {

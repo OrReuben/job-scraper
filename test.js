@@ -27,6 +27,8 @@ const newArr = strArr.filter((item) => {
 // console.log(newArr);
 
  
+const pattern = /(?:(?<=\s)|^)(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי)(?:(?=\s)|$)|(?:(?<=\D)|^)(?:(?=\D)|$)/i
 
 
-console.log(10%5);
+console.log(pattern.test('Senior'));
+
