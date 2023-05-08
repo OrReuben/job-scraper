@@ -8,22 +8,30 @@ const executeScrapeFunctions = async (scrapeFunctions) => {
     errors: [],
   };
 
-  for (const scrapeFunction of scrapeFunctions) {
-    try {
-      const scrapeResult = await retryFunction(scrapeFunction, 2);
+  const promises = scrapeFunctions.map((scrapeFunction) =>
+    retryFunction(scrapeFunction, 2).catch((err) => ({
+      error: {
+        functionName: scrapeFunction.name,
+        message: err.message,
+      },
+    }))
+  );
+
+  const results = await Promise.all(promises);
+
+  for (const scrapeResult of results) {
+    if (scrapeResult.error) {
+      result.errors.push(scrapeResult.error);
+    } else {
       result.jobDataLength += scrapeResult.jobDataLength;
       result.filteredJobsLength += scrapeResult.filteredJobsLength;
       result.operationTime += scrapeResult.operationTime;
-    } catch (err) {
-      result.errors.push({
-        functionName: scrapeFunction.name,
-        message: err.message,
-      });
     }
   }
 
   return result;
 };
+
 
 
 

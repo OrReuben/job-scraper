@@ -6,6 +6,7 @@ const { scrapeJobmasterLogic } = require("./jobmaster_controller");
 const { scrapeMatrixLogic } = require("./matrix_controller");
 const { scrapeDrushimLogic } = require("./drushim_controller");
 const { scrapeSQLinkLogic } = require("./SQLink_controller");
+const { scrapeAllJobsLogic } = require("./alljobs_controller");
 
 module.exports.resetSheetData = async (req, res) => {
   try {
@@ -16,6 +17,7 @@ module.exports.resetSheetData = async (req, res) => {
       scrapeMatrixLogic,
       scrapeDrushimLogic,
       scrapeSQLinkLogic,
+      scrapeAllJobsLogic
     ]);
     console.log("FINISHED RESETTING DATA...");
     if (result.errors.length === 0) {

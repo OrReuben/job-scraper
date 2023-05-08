@@ -65,14 +65,14 @@ async function closePopupIfExists(page, closeButtonSelector) {
 
 const filterJobData = (jobData) => {
   const regex1 =
-    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|three|four|five|six|seven|eight|nine)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/i;
+    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|three|four|five|six|seven|eight|nine|ניהול|ניהולי|ראש)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/i;
   const regex2 =
     /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/i;
   const regex3 =
     /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/i;
   const regex4 = /\d/;
   const titleRegex =
-    /(?:(?<=\s)|^)(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי)(?:(?=\s)|$)|(?:(?<=\D)|^)(?:(?=\D)|$)/i;
+    /(?:(?<=\s)|^)(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי)(?:(?=\s)|$)|(?:(?<=\D)|^)[0](?:(?=\D)|$)/i;
 
   return jobData.filter(({ requirements, description, title }) => {
     if (titleRegex.test(title)) {
@@ -80,9 +80,6 @@ const filterJobData = (jobData) => {
     }
     if (regex1.test(requirements) || regex1.test(description)) {
       return false;
-    }
-    if (regex2.test(requirements) || regex2.test(description)) {
-      return regex3.test(requirements);
     }
     if (regex3.test(requirements) || regex3.test(description)) {
       return true;
@@ -102,12 +99,12 @@ const filterUniqueLinks = (jobData) => {
   });
 };
 
-const getTotalPages = async (page, selector, itemsPerPage) => {
+const getTotalPages = async (page, selector, itemsPerPage, index = 0) => {
   const pageCountEl = await page.$(selector);
   const pageCountRaw = await page.evaluate((el) => el.textContent, pageCountEl);
   const numberRegex = /\d+/g;
   const matchedNumbers = pageCountRaw.match(numberRegex);
-  const pageCount = matchedNumbers ? Number(matchedNumbers[0]) : 0;
+  const pageCount = matchedNumbers ? Number(matchedNumbers[index]) : 0;
   return Math.ceil(pageCount / itemsPerPage);
 };
 
