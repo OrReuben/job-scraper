@@ -14,11 +14,13 @@ const processPages = async (page, keyword) => {
   const jobData = [];
   console.log(`DRUSHIM: Attempting to scrape the keyword: ${keyword}`);
   console.log("DRUSHIM: Navigating to page..");
-  await page.goto(
-    `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
-  );
-
-  await page.waitForSelector(".jobs-row div:nth-child(2) .job-item");
+  await Promise.race([
+    page.goto(
+      `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
+    ),
+    page.waitForSelector(".jobs-row div:nth-child(2) .job-item"),
+  ]);
+  
   const jobItems = await page.$$(".jobs-row div:nth-child(2) .job-item");
 
   for (const jobItem of jobItems) {
@@ -75,7 +77,7 @@ const scrapeDrushimLogic = async () => {
 
   console.log("DRUSHIM: Opening up the browser...");
   const browser = await launchBrowser();
-  
+
   try {
     console.log("DRUSHIM: Creating a new page..");
     const page = await browser.newPage();

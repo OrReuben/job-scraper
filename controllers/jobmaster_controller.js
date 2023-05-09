@@ -17,20 +17,19 @@ const processPages = async (page, keyword, totalPages) => {
   const jobData = [];
   console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
   for (let index = 0; index < totalPages; index++) {
-    (index + 1) % 5 === 0 && console.log('JOBMASTER: +5 Pages scraped');
-    await page.goto(
-      `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`
-    );
+    (index + 1) % 5 === 0 && console.log("JOBMASTER: +5 Pages scraped");
 
-    try {
-      await page.waitForSelector(".JobItemRight", { timeout: 10000 });
-    } catch (err) {
-      if (err instanceof page.errors.TimeoutError) {
-        break;
-      } else {
-        throw err;
-      }
-    }
+    await Promise.race([
+      page.goto(
+        `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`,
+        { waitUntil: "domcontentloaded" }
+      ),
+      page.waitForFunction(() => {
+        const jobItems = document.querySelectorAll(".JobItemRight");
+        return jobItems.length === 10;
+      }),
+    ]);
+
     const jobItems = await page.$$(".JobItemRight");
 
     for (let i = 0; i < jobItems.length; i++) {
@@ -78,7 +77,7 @@ const processPages = async (page, keyword, totalPages) => {
       const requirements = $("#jobFullDetails .jobRequirements")
         .text()
         .trim()
-        .replace(/[\n\t]+/g, " ");  
+        .replace(/[\n\t]+/g, " ");
 
       const oneJobData = {
         keyword,
