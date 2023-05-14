@@ -147,25 +147,25 @@ async function executeSheets(allJobData, website) {
     await appendDataToSheets(sheets, rows);
     console.log(`Successfully posted data for website: ${website}`);
   } catch (error) {
+    console.error('TOKEN ERROR: '+ error.response.data.error_description);
     let typeOfError = error.response.data.error_description
     if(typeOfError === 'Token has been expired or revoked.'){
       await removeTokenLine()
-      return await executeSheets(allJobData, website)
+      await executeSheets(allJobData, website)
     }
-    console.error(error);
   }
 }
 
 async function removeTokenLine() {
   const fileName = '.env';
   const tokenLineStart = 'TOKEN=';
-
   const data = await fs.promises.readFile(fileName, 'utf8');
   const lines = data.split('\n');
   const filteredLines = lines.filter(line => !line.startsWith(tokenLineStart));
   const newContent = filteredLines.join('\n');
-
   await fs.promises.writeFile(fileName, newContent, 'utf8');
+
+  process.env.TOKEN = null;
 }
 
 async function resetSheetsLogic() {

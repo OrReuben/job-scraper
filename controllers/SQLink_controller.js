@@ -19,16 +19,28 @@ const processPages = async (page, keyword, totalPages) => {
 
   for (let index = 0; index < totalPages; index++) {
     (index + 1) % 5 === 0 && console.log("SQLINK:  +5 Pages scraped");
-    await Promise.race([
-      page.goto(
-        `https://www.sqlink.com/career/searchresults/?page=${index + 1}`,
-        { waitUntil: "domcontentloaded" }
-      ),
-      page.waitForFunction(() => {
-        const jobItems = document.querySelectorAll(".positionItem");
-        return jobItems.length === 20;
-      }),
-    ]);
+
+    await page.goto(
+      `https://www.sqlink.com/career/searchresults/?page=${index + 1}`,
+      { waitUntil: "domcontentloaded" }
+    );
+    index+1 < totalPages && await page.waitForFunction(() => {
+      const jobItems = document.querySelectorAll(".positionItem");
+      return jobItems.length === 20;
+    });
+
+    // await Promise.race([
+    //   page.goto(
+    //     `https://www.sqlink.com/career/searchresults/?page=${index + 1}`,
+    //     { waitUntil: "domcontentloaded" }
+    //   ),
+    //   page.waitForFunction(
+    //     () => {
+    //       const jobItems = document.querySelectorAll(".positionItem");
+    //       return jobItems.length === 20;
+    //     },
+    //   ),
+    // ]);
 
     const jobItems = await page.$$(".positionItem");
 
