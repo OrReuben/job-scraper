@@ -6,7 +6,7 @@ const {
   searchForKeyword,
   filterJobData,
   SCRAPING_KEYWORDS,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   getTotalPages,
   setDefaultPageParams,
   processKeyword,
@@ -203,7 +203,7 @@ const scrapeSQLinkLogic = async () => {
     jobData.push(...keywordJobData);
 
     const filteredJobs = await filterJobData(jobData);
-    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+    const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
     await browser.close();
 

@@ -18,7 +18,7 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: false, timeout: 90000 });
+  return await puppeteer.launch({ headless: 'new', timeout: 90000 });
 };
 
 const setDefaultPageParams = (page) => {
@@ -64,31 +64,44 @@ async function closePopupIfExists(page, closeButtonSelector) {
 }
 
 const filterJobData = (jobData) => {
-  const regex1 =
-    /(?:(?<=\s)|^)(?:3|4|5|6|7|8|9|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|three|four|five|six|seven|eight|nine|ניהול|ניהולי|ראש)(?:(?=\s)|$)|(?:(?<=\D)|^)[3-9](?:(?=\D)|$)/i;
-  const regex2 =
-    /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/i;
-  const regex3 =
-    /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/i;
-  const regex4 = /\d/;
-  const titleRegex =
-    /(?:(?<=\s)|^)(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי)(?:(?=\s)|$)|(?:(?<=\D)|^)[0](?:(?=\D)|$)/i;
+  const titleRegex = /(?:senior|ראש|סניור|בוגר|מומחה|מנהל|הנדסאי|team|lead|manager|expert)/i;
 
-  return jobData.filter(({ requirements, description, title }) => {
+  const numberRegex = /(?<!angular\s)\b(?:[3-9]|1[0-5])\b/i;
+
+  const wordRegex =
+    /(?:שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|three|four|five|six|seven|eight|nine)/i;
+
+  const educationRegex = /(?:תואר|ניהולי|ראש|degree|bachelors|academic|academy|השכלה|bsc)/i;
+
+  const twoYearsRegex =
+    /(?:(?<=\s)|^)(?:2|two|שנתיים|שתי|שני)(?:(?=\s)|$)|(?:(?<=\D)|^)[2-2](?:(?=\D)|$)/i;
+
+  const oneYearRegex =
+    /(?:(?<=\s)|^)(?:1|0|שנה|שנת|one)(?:(?=\s)|$)|(?:(?<=\D)|^)[0-1](?:(?=\D)|$)/i;
+
+  const noNumbersRegex = /\d/;
+
+  return jobData.filter(({ requirements, description, title, ID }) => {
     if (titleRegex.test(title)) {
       return false;
     }
-    if (regex1.test(requirements) || regex1.test(description)) {
+    if (numberRegex.test(requirements) || wordRegex.test(requirements)) {
       return false;
     }
-    if (regex3.test(requirements) || regex3.test(description)) {
+    if (educationRegex.test(requirements) || educationRegex.test(description)) {
+      return false;
+    }
+    if (twoYearsRegex.test(requirements)) {
+      return oneYearRegex.test(requirements) || oneYearRegex.test(description);
+    }
+    if (oneYearRegex.test(requirements) || oneYearRegex.test(description)) {
       return true;
     }
-    return !regex4.test(requirements);
+    return !noNumbersRegex.test(requirements);
   });
 };
 
-const filterUniqueLinks = (jobData) => {
+const filterUniqueJobsByID = (jobData) => {
   const uniqueLinks = new Set();
   return jobData.filter(({ ID }) => {
     if (!uniqueLinks.has(ID)) {
@@ -135,7 +148,7 @@ module.exports = {
   searchForKeyword,
   closePopupIfExists,
   filterJobData,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   getTotalPages,
   setDefaultPageParams,
   processKeyword,

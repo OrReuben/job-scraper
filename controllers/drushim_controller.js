@@ -4,7 +4,7 @@ const {
   launchBrowser,
   filterJobData,
   SCRAPING_KEYWORDS,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   setDefaultPageParams,
   processKeyword,
 } = require("../globalFunctions/scraping_logic");
@@ -20,11 +20,13 @@ const processPages = async (page, keyword) => {
     ),
     page.waitForSelector(".jobs-row div:nth-child(2) .job-item"),
   ]);
-  
+
   const jobItems = await page.$$(".jobs-row div:nth-child(2) .job-item");
 
   for (const jobItem of jobItems) {
-    await jobItem.click();
+    const specificSelector = await jobItem.$(".sub-details-btns .pointer");
+    await specificSelector.click();
+    await page.waitForSelector(".job-requirements div p");
     const innerHTML = await (
       await jobItem.getProperty("innerHTML")
     ).jsonValue();
@@ -42,10 +44,11 @@ const processPages = async (page, keyword) => {
       .text()
       .trim()
       .replace(/[\n\t]+/g, " ");
-    const requirements = $(".job-requirement div p")
+    const requirements = $(".job-requirements div p")
       .text()
       .trim()
       .replace(/[\n\t]+/g, " ");
+
     const websiteLink = $(".pc-view div a").attr("href");
     const link = `https://www.drushim.co.il/${websiteLink}`;
     const ID = websiteLink.split("/")[2];
@@ -72,7 +75,7 @@ const scrapeDrushimLogic = async () => {
 
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ["Fullstack", "React"];
+  // const keywords = ["Javascript"];
   const jobData = [];
 
   console.log("DRUSHIM: Opening up the browser...");
@@ -100,9 +103,8 @@ const scrapeDrushimLogic = async () => {
       );
       jobData.push(...keywordJobData);
     }
-
     const filteredJobs = await filterJobData(jobData);
-    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+    const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
     await browser.close();
 

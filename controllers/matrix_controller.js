@@ -4,7 +4,7 @@ const {
   launchBrowser,
   navigateToPage,
   filterJobData,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   setDefaultPageParams,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
@@ -89,7 +89,7 @@ const scrapeMatrixLogic = async () => {
     jobData.push(...keywordJobData);
 
     const filteredJobs = await filterJobData(jobData);
-    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+    const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
     await browser.close();
 
     await executeSheets(uniqueFilteredJobs, "Matrix");

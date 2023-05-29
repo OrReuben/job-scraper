@@ -6,7 +6,7 @@ const {
   closePopupIfExists,
   filterJobData,
   SCRAPING_KEYWORDS,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   getTotalPages,
   setDefaultPageParams,
   processKeyword,
@@ -101,7 +101,7 @@ const scrapeJobmasterLogic = async () => {
 
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ["ReactJS", "Angular"];
+  // const keywords = ["Fullstack"];
   const jobData = [];
 
   console.log("JOBMASTER: Opening up the browser...");
@@ -162,9 +162,9 @@ const scrapeJobmasterLogic = async () => {
       );
       jobData.push(...keywordJobData);
     }
-
     const filteredJobs = await filterJobData(jobData);
-    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+    const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
+
 
     await browser.close();
 

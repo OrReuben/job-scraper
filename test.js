@@ -32,6 +32,10 @@ const newArr = strArr.filter((item) => {
 
 // console.log(pattern.test('Senior'));
 
-const arr = [1,2,3,4,5,6,7,8,9,10]
+// const arr = [1,2,3,4,5,6,7,8,9,10]
 
-console.log(arr.slice(arr.length/2))
+// console.log(arr.slice(arr.length/2))
+const text = 'Bachelors’ degree preferably in industrial engineering and management, management Information Systems, Business Administration with specialization in Information Systems.At least one year of proven experience in the information systems fieldInterpersonal skills and the ability to work with various customers at a time.Strong communication skills mainly in English.Familiarity with XML, JavaScript, HTML, Crystal and SQL – an advantage';
+const reg = /(?:תואר|ניהול|ראש|degree|ניסיון|bachelors)/gi
+
+console.log(reg.test(text));

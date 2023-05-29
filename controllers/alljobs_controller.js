@@ -3,8 +3,7 @@ const { executeSheets } = require("../globalFunctions/google_sheets");
 const {
   launchBrowser,
   filterJobData,
-  SCRAPING_KEYWORDS,
-  filterUniqueLinks,
+  filterUniqueJobsByID,
   setDefaultPageParams,
   processKeyword,
   getTotalPages,
@@ -70,7 +69,7 @@ const processPages = async (page, keyword) => {
         .trim()
         .replace(/[\n\t]+/g, " ");
       const shortenedLink = $(".H10 + div div a").attr("href");
-      const link = `http://alljobs.co.il${shortenedLink}`;
+      const link = `https://www.alljobs.co.il${shortenedLink}`;
       const ID = shortenedLink.split("=")[1];
       const jobItemData = {
         title,
@@ -121,7 +120,7 @@ const scrapeAllJobsLogic = async () => {
     jobData.push(...keywordJobData);
 
     const filteredJobs = await filterJobData(jobData);
-    const uniqueFilteredJobs = await filterUniqueLinks(filteredJobs);
+    const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
     await browser.close();
 
