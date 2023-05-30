@@ -17,16 +17,19 @@ const SCRAPING_KEYWORDS = [
   "Python",
 ];
 
-const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: false, timeout: 90000 });
+const launchBrowser = async (website) => {
+  console.log(`${website}: Opening up the browser...`);
+  return await puppeteer.launch({ headless: 'new', timeout: 90000 });
 };
 
-const setDefaultPageParams = (page) => {
+const setDefaultPageParams = (page, website) => {
+  console.log(`${website}: Setting default page settings..`);
   page.setDefaultNavigationTimeout(90000);
   page.setDefaultTimeout(90000);
 };
 
-const navigateToPage = async (page, link) => {
+const navigateToPage = async (page, link, website) => {
+  console.log(`${website}: Navigating to page..`);
   await page.goto(link, { waitUntil: "domcontentloaded" });
 };
 

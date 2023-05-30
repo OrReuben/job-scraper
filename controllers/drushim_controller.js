@@ -69,21 +69,19 @@ const processPages = async (page, keyword) => {
 
 const scrapeDrushimLogic = async () => {
   console.log(`SCRAPING DRUSHIM...`);
-
+  const websiteName = 'DRUSHIM'
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   // const keywords = ["Fullstack", "React"];
   const jobData = [];
 
-  console.log("DRUSHIM: Opening up the browser...");
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(websiteName);
 
   try {
     console.log("DRUSHIM: Creating a new page..");
     const page = await browser.newPage();
 
-    console.log("DRUSHIM: Setting default page settings..");
-    setDefaultPageParams(page);
+    setDefaultPageParams(page, websiteName);
 
     page.on("dialog", async (dialog) => {
       console.log(`Dialog message: ${dialog.message()}`);

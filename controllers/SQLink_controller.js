@@ -88,32 +88,32 @@ const processPages = async (page, keyword, totalPages) => {
 
 const scrapeSQLinkLogic = async () => {
   console.log(`SCRAPING SQLINK...`);
+
+  const websiteName = 'SQLINK'
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   // const keywords = ["Fullstack"];
   const jobData = [];
 
-  console.log("SQLINK: Opening up the browser...");
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(websiteName);
 
   try {
     console.log("SQLINK: Creating a new page..");
     const page = await browser.newPage();
 
-    console.log("SQLINK: Setting default page settings..");
-    setDefaultPageParams(page);
+    setDefaultPageParams(page, websiteName);
 
     page.on("dialog", async (dialog) => {
       console.log(`Dialog message: ${dialog.message()}`);
       await dialog.dismiss();
     });
 
-    console.log("SQLINK: Navigating to page..");
     await navigateToPage(
       page,
       decodeURIComponent(
         "https://www.sqlink.com/career/%D7%A4%D7%99%D7%AA%D7%95%D7%97-%D7%AA%D7%95%D7%9B%D7%A0%D7%94-webmobile/"
-      )
+      ),
+      websiteName
     );
 
     const maxRetries = 3;

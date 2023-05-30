@@ -9,7 +9,9 @@ const {
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
 
-const processPages = async (page) => {
+const processPages = async (page, website) => {
+  console.log(`${website}: Processing pages...`);
+
   const jobData = [];
   await page.waitForSelector(".job-item");
   const jobItems = await page.$$(".job-item");
@@ -57,35 +59,32 @@ const processPages = async (page) => {
 
 const scrapeMatrixLogic = async () => {
   const jobData = [];
-
+  const websiteName = 'MATRIX'
   console.log("MATRIX: Attempting to scrape...");
   const startingScriptTime = new Date().getTime();
 
-  console.log("MATRIX: Opening up the browser...");
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(websiteName);
 
   try {
     console.log("MATRIX: Creating a new page..");
     const page = await browser.newPage();
 
-    console.log("MATRIX: Setting default page settings..");
-    setDefaultPageParams(page);
+    setDefaultPageParams(page, websiteName);
 
     page.on("dialog", async (dialog) => {
       console.log(`Dialog message: ${dialog.message()}`);
       await dialog.dismiss();
     });
 
-    console.log("MATRIX: Navigating to page..");
     await navigateToPage(
       page,
       decodeURIComponent(
         "https://www.matrix.co.il/jobs/%D7%9E%D7%A9%D7%A8%D7%95%D7%AA/%d7%a4%d7%99%d7%aa%d7%95%d7%97-%d7%aa%d7%95%d7%9b%d7%a0%d7%94/"
-      )
+      ),
+      websiteName
     );
 
-    console.log("MATRIX: Processing pages...");
-    const keywordJobData = await processPages(page);
+    const keywordJobData = await processPages(page, websiteName);
     jobData.push(...keywordJobData);
 
     const filteredJobs = await filterJobData(jobData);

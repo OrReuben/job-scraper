@@ -99,19 +99,18 @@ const processPages = async (page, keyword, totalPages) => {
 const scrapeJobmasterLogic = async () => {
   console.log(`SCRAPING JOBMASTER...`);
 
+  const websiteName = "JOBMASTER";
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
   // const keywords = ["ReactJS", "Angular"];
   const jobData = [];
 
-  console.log("JOBMASTER: Opening up the browser...");
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(websiteName);
   try {
     console.log("JOBMASTER: Creating a new page..");
     const page = await browser.newPage();
 
-    console.log("JOBMASTER: Setting default page settings..");
-    setDefaultPageParams(page);
+    setDefaultPageParams(page, websiteName);
 
     page.on("dialog", async (dialog) => {
       console.log(`Dialog message: ${dialog.message()}`);
@@ -121,7 +120,6 @@ const scrapeJobmasterLogic = async () => {
     const maxRetries = 3;
 
     for (const keyword of keywords) {
-      console.log("JOBMASTER: Navigating to page..");
       let navigateSuccess = false;
       let navigateAttempts = 0;
 
@@ -129,8 +127,10 @@ const scrapeJobmasterLogic = async () => {
         try {
           await navigateToPage(
             page,
-            `https://www.jobmaster.co.il/jobs/?currPage=1&q=${keyword}`
+            `https://www.jobmaster.co.il/jobs/?currPage=1&q=${keyword}`,
+            websiteName
           );
+          
           navigateSuccess = true;
         } catch (err) {
           navigateAttempts++;

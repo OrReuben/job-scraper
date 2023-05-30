@@ -92,19 +92,17 @@ const processPages = async (page, keyword) => {
 
 const scrapeAllJobsLogic = async () => {
   console.log(`SCRAPING ALLJOBS...`);
-
+  const websiteName = 'ALLJOBS'
   const startingScriptTime = new Date().getTime();
   const jobData = [];
 
-  console.log("ALLJOBS: Opening up the browser...");
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(websiteName);
 
   try {
     console.log("ALLJOBS: Creating a new page..");
     const page = await browser.newPage();
 
-    console.log("ALLJOBS: Setting default page settings..");
-    setDefaultPageParams(page);
+    setDefaultPageParams(page, websiteName);
 
     page.on("dialog", async (dialog) => {
       console.log(`Dialog message: ${dialog.message()}`);
