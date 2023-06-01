@@ -3,6 +3,14 @@ const app = express();
 require("dotenv").config();
 const executeActionsRoute = require("./routes/execute_actions_route");
 const { automateExecutions } = require("./globalFunctions/automateExecutions");
+const uri = process.env.MONGO_URL;
+const mongoose = require('mongoose')
+
+mongoose
+  .connect(uri, { useNewUrlParser: true })
+  .then(() => console.log(`Database connected successfully`))
+  .catch((err) => console.log(err));
+mongoose.Promise = global.Promise;
 
 const schedule = [
   { time: "00:00", route: "/execute/reset", daysInterval: 3 },

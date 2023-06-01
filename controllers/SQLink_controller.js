@@ -12,6 +12,7 @@ const {
   processKeyword,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
+const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword, totalPages) => {
   const jobData = [];
@@ -207,6 +208,7 @@ const scrapeSQLinkLogic = async () => {
 
     await browser.close();
 
+    await handleMongoActions(uniqueFilteredJobs, "SQLink")
     await executeSheets(uniqueFilteredJobs, "SQLink");
 
     const endingScriptTime = new Date().getTime();

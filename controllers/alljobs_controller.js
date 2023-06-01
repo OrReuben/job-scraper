@@ -9,6 +9,7 @@ const {
   getTotalPages,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
+const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword) => {
   const jobData = [];
@@ -124,6 +125,7 @@ const scrapeAllJobsLogic = async () => {
 
     await browser.close();
 
+    await handleMongoActions(uniqueFilteredJobs, "AllJobs")
     await executeSheets(uniqueFilteredJobs, "AllJobs");
 
     const endingScriptTime = new Date().getTime();

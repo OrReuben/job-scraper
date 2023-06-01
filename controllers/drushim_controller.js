@@ -9,6 +9,7 @@ const {
   processKeyword,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
+const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword) => {
   const jobData = [];
@@ -108,6 +109,7 @@ const scrapeDrushimLogic = async () => {
 
     await browser.close();
 
+    await handleMongoActions(uniqueFilteredJobs, "Drushim")
     await executeSheets(uniqueFilteredJobs, "Drushim");
 
     const endingScriptTime = new Date().getTime();

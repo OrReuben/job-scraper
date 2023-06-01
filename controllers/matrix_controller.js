@@ -8,6 +8,9 @@ const {
   setDefaultPageParams,
 } = require("../globalFunctions/scraping_logic");
 const { retryFunction } = require("../globalFunctions/retryFunction");
+const { handleMongoActions } = require("../globalFunctions/mongoActions");
+
+
 
 const processPages = async (page) => {
   const jobData = [];
@@ -23,8 +26,6 @@ const processPages = async (page) => {
     const title = $(".job-title a").text().trim();
     const location = $(".job-areas").text().trim();
     const type = "לא צוין";
-    // const jobIdText = await page.evaluate((el) => el.id, jobItem);
-    // const ID = /\d+/.exec(jobIdText)[0];
     const ID = $(".add-to-my-jobs-id").text().trim();
     const linkEncoded = $(".job-title a").attr("href");
     const link = decodeURIComponent(linkEncoded);
@@ -92,6 +93,7 @@ const scrapeMatrixLogic = async () => {
     const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
     await browser.close();
 
+    await handleMongoActions(uniqueFilteredJobs, "Matrix")
     await executeSheets(uniqueFilteredJobs, "Matrix");
 
     const endingScriptTime = new Date().getTime();
@@ -105,6 +107,7 @@ const scrapeMatrixLogic = async () => {
       filteredJobsLength: uniqueFilteredJobs.length,
       operationTime: calculateToMinutes,
     };
+
   } catch (err) {
     console.log("Something went wrong.. " + err.message);
     browser.close();
