@@ -5,7 +5,6 @@ const { scrapeMatrix } = require("../controllers/matrix_controller");
 const { scrapeDrushim } = require("../controllers/drushim_controller");
 const { scrapeSQLink } = require("../controllers/SQLink_controller");
 const { scrapeAllJobs } = require("../controllers/alljobs_controller");
-const { handleMongoActions } = require("../globalFunctions/mongoActions");
 const router = express.Router();
 require("dotenv").config();
 

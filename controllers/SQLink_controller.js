@@ -70,6 +70,10 @@ const processPages = async (page, keyword, totalPages) => {
         .trim()
         .replace(/[\n\t]+/g, " ");
 
+        if (!title || !link || !description || !requirements || !ID || !location || !type) {
+          continue;
+        }
+        
       const oneJobData = {
         keyword,
         title,

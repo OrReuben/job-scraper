@@ -1,16 +1,16 @@
 const { Site } = require("../models/siteModel");
 
-function convertDataToMongoModel(jobs) {
+function convertDataToMongoModel(jobs, website) {
   const result = [];
   for (const obj of jobs) {
-    result.push({ ...obj });
+    result.push({ website, ...obj });
   }
   return result;
 }
 
 const handleMongoActions = async (jobs, website) => {
   console.log(`${website.toUpperCase()}: Posting jobs on mongo..`);
-  const convertedJobData = convertDataToMongoModel(jobs);
+  const convertedJobData = convertDataToMongoModel(jobs, website);
   try {
     const siteExists = await Site.findOne({ website });
     if (siteExists) {

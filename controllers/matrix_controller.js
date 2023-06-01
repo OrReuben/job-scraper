@@ -39,6 +39,10 @@ const processPages = async (page) => {
       .replace(/[\n\t]+/g, " ");
     const keyword = "Fullstack";
 
+    if (!title || !link || !description || !requirements || !ID || !location || !type) {
+      continue;
+    }
+    
     const jobItemData = {
       title,
       location,

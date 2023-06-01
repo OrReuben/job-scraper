@@ -72,6 +72,11 @@ const processPages = async (page, keyword) => {
       const shortenedLink = $(".H10 + div div a").attr("href");
       const link = `https://www.alljobs.co.il${shortenedLink}`;
       const ID = shortenedLink.split("=")[1];
+
+      if (!title || !link || !description || !requirements || !ID || !location || !type) {
+        continue;
+      }
+      
       const jobItemData = {
         title,
         location,

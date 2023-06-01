@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const executeActionsRoute = require("./routes/execute_actions_route");
+const fetchDataRoute = require('./routes/fetch_data_route')
 const { automateExecutions } = require("./globalFunctions/automateExecutions");
 const uri = process.env.MONGO_URL;
 const mongoose = require('mongoose')
@@ -18,6 +19,7 @@ const schedule = [
   { time: "15:00", route: "/execute/matrix" },
   { time: "15:30", route: "/execute/drushim" },
   { time: "18:00", route: "/execute/sqlink" },
+  { time: "21:00", route: "/execute/alljobs" },
 ];
 
 schedule.forEach(({ time, route, daysInterval }) => {
@@ -25,6 +27,7 @@ schedule.forEach(({ time, route, daysInterval }) => {
 });
 
 app.use(express.json());
+app.use("/", fetchDataRoute);
 app.use("/execute", executeActionsRoute);
 app.use("/ping", (req, res) => {
   res.status(200).json("pinged");

@@ -38,4 +38,9 @@ const newArr = strArr.filter((item) => {
 const text = 'Bachelors’ degree preferably in industrial engineering and management, management Information Systems, Business Administration with specialization in Information Systems.At least one year of proven experience in the information systems fieldInterpersonal skills and the ability to work with various customers at a time.Strong communication skills mainly in English.Familiarity with XML, JavaScript, HTML, Crystal and SQL – an advantage';
 const reg = /(?:תואר|ניהול|ראש|degree|ניסיון|bachelors)/gi
 
+const obj = {name:'or', age:22}
+
+for (const key in obj){
+  console.log(key);
+}
 console.log(reg.test(text));

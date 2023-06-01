@@ -5,6 +5,7 @@ const siteModel = new Schema({
   website: { type: String, required: true, unique: true },
   jobs: [
     {
+      website:{ type: String, required: true },
       title: { type: String, required: true },
       location: { type: String, required: true },
       type: { type: String, required: true },

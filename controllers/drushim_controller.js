@@ -54,6 +54,10 @@ const processPages = async (page, keyword) => {
     const link = `https://www.drushim.co.il/${websiteLink}`;
     const ID = websiteLink.split("/")[2];
 
+    if (!title || !link || !description || !requirements || !ID || !location || !type) {
+      continue;
+    }
+    
     const jobItemData = {
       title,
       location,
