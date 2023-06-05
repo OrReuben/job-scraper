@@ -38,7 +38,7 @@ const getAllJobs = async (req, res) => {
     }
 
     if (page) {
-      const pageSize = 10; // Number of jobs per page
+      const pageSize = 10; 
       const startIndex = (page - 1) * pageSize;
       const endIndex = page * pageSize;
       allJobsCombined = allJobsCombined.slice(startIndex, endIndex);
