@@ -12,7 +12,7 @@ const AllJobs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [pageCount, setPageCount] = useState(0);
-  const uri = "http://localhost:5000"
+  const uri = "https://job-scraper-api.onrender.com"
   const countRef = useRef(0);
   const [searchParams] = useSearchParams();
   const { website, role, page } = Object.fromEntries([...searchParams]);
