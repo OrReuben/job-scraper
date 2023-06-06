@@ -43,7 +43,7 @@ const automateExecutions = async (time, route, daysInterval = 1) => {
         console.log(data);
         lastExecutions[route] = currentDate;
       } catch (error) {
-        console.error(error);
+        console.error(error.message);
       }
     }
     automateExecutions(time, route, daysInterval);

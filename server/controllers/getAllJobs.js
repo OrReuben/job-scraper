@@ -29,7 +29,7 @@ const getAllJobs = async (req, res) => {
       allJobsCombined = allJobsCombined.filter((job) => {
         for (const key of filterKeys) {
           const value = job[key];
-          if (value && value.toString().includes(any)) {
+          if (value && value.toString().toLowerCase().includes(any.toLowerCase())) {
             return true;
           }
         }
