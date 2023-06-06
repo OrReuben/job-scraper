@@ -36,15 +36,16 @@ const getAllJobs = async (req, res) => {
         return false;
       });
     }
+    const jobCount = allJobsCombined.length;
 
     if (page) {
-      const pageSize = 10; 
+      const pageSize = 10;
       const startIndex = (page - 1) * pageSize;
       const endIndex = page * pageSize;
       allJobsCombined = allJobsCombined.slice(startIndex, endIndex);
     }
 
-    res.status(200).json(allJobsCombined);
+    res.status(200).json({ jobs: allJobsCombined, count: jobCount });
   } catch (err) {
     res.status(500).json(err.message);
   }

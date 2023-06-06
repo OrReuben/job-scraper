@@ -2,10 +2,11 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const executeActionsRoute = require("./routes/execute_actions_route");
-const fetchDataRoute = require('./routes/fetch_data_route')
+const fetchDataRoute = require("./routes/fetch_data_route");
 const { automateExecutions } = require("./globalFunctions/automateExecutions");
 const uri = process.env.MONGO_URL;
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 mongoose
   .connect(uri, { useNewUrlParser: true })
@@ -13,6 +14,7 @@ mongoose
   .catch((err) => console.log(err));
 mongoose.Promise = global.Promise;
 
+app.use(cors());
 const schedule = [
   { time: "00:00", route: "/execute/reset", daysInterval: 3 },
   { time: "12:00", route: "/execute/jobmaster" },

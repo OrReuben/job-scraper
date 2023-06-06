@@ -33,7 +33,7 @@ const processPages = async (page, keyword) => {
     ).jsonValue();
     const $ = cheerio.load(innerHTML);
 
-    const title = $(".job-url.primary--text.font-weight-bold.primary--text")
+    const title = $(".job-url")
       .text()
       .trim();
     const locationAndType = $(".job-details-sub div div div:nth-child(1)")
@@ -54,10 +54,18 @@ const processPages = async (page, keyword) => {
     const link = `https://www.drushim.co.il/${websiteLink}`;
     const ID = websiteLink.split("/")[2];
 
+    // console.log("Title:", title);
+    // console.log("Link:", link);
+    // console.log("Description:", description);
+    // console.log("Requirements:", requirements);
+    // console.log("ID:", ID);
+    // console.log("Location:", location);
+    // console.log("Type:", type);
+
     if (!title || !link || !description || !requirements || !ID || !location || !type) {
       continue;
     }
-    
+
     const jobItemData = {
       title,
       location,
@@ -113,7 +121,7 @@ const scrapeDrushimLogic = async () => {
 
     await browser.close();
 
-    await handleMongoActions(uniqueFilteredJobs, "Drushim")
+    await handleMongoActions(uniqueFilteredJobs, "Drushim");
     await executeSheets(uniqueFilteredJobs, "Drushim");
 
     const endingScriptTime = new Date().getTime();

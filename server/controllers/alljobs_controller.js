@@ -54,8 +54,19 @@ const processPages = async (page, keyword) => {
       const $ = cheerio.load(innerHTML);
 
       const title = $(".H10 + div a h3").text().trim();
-      const location = $(".H5 + div a").text().trim();
-      const type = $(".H5 + div + div a").text().trim();
+
+      const allLocations = []
+      $(".H5 + div a").each((index, element) => {
+        allLocations.push($(element).text());
+      });
+      const location = allLocations.join(", ");
+
+      const jobTypes = [];
+      $(".H5 + div + div a").each((index, element) => {
+        jobTypes.push($(element).text());
+      });
+      const type = jobTypes.join(", ");
+      
       const description = $(".job-content-top-desc div")
         .first()
         .contents()
@@ -63,20 +74,24 @@ const processPages = async (page, keyword) => {
           return this.type === "text";
         })
         .text()
-        .trim()
-        .replace(/[\n\t]+/g, " ");
-      const requirements = $(".job-content-top-desc .PT15")
-        .text()
-        .trim()
-        .replace(/[\n\t]+/g, " ");
+        .trim();
+      const requirements = $(".job-content-top-desc .PT15").text().trim();
       const shortenedLink = $(".H10 + div div a").attr("href");
       const link = `https://www.alljobs.co.il${shortenedLink}`;
       const ID = shortenedLink.split("=")[1];
 
-      if (!title || !link || !description || !requirements || !ID || !location || !type) {
+      if (
+        !title ||
+        !link ||
+        !description ||
+        !requirements ||
+        !ID ||
+        !location ||
+        !type
+      ) {
         continue;
       }
-      
+
       const jobItemData = {
         title,
         location,
@@ -130,7 +145,7 @@ const scrapeAllJobsLogic = async () => {
 
     await browser.close();
 
-    await handleMongoActions(uniqueFilteredJobs, "AllJobs")
+    await handleMongoActions(uniqueFilteredJobs, "AllJobs");
     await executeSheets(uniqueFilteredJobs, "AllJobs");
 
     const endingScriptTime = new Date().getTime();
