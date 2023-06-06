@@ -51,7 +51,7 @@ const Container = styled.section`
 
   h2 {
     text-align: center;
-    padding: 1rem 0;
+    padding: 0.75rem 0;
     font-family: 700;
   }
 `;
@@ -80,6 +80,9 @@ const Form = styled.form`
 
     @media (max-width: 1300px) {
       padding: 0.5rem 1rem;
+    }
+    @media (max-width: 700px) {
+      max-width: 125px;
     }
   }
 
