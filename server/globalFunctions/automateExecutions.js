@@ -42,7 +42,7 @@ const automateExecutions = async (time, route, daysInterval = 1) => {
     if (lastExecutionMinute !== currentMinute) {
       console.log(`Starting to automate the route: ${route}`);
       try {
-        const { data } = await axiosInstance.get(route);
+        const { data } = await axiosInstance.post(route);
         console.log(`Finished automating the route: ${route}`);
         console.log(data);
         lastExecutions[route] = currentDate;
