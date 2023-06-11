@@ -5,7 +5,7 @@ const axiosInstance = axios.create({
 });
 
 setInterval(async () => {
-  const {data} = await axiosInstance.get("/ping");
+  const {data} = await axiosInstance.get("/wakeup");
   console.log(data);
 }, 300000);
 
