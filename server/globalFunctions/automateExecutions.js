@@ -5,8 +5,12 @@ const axiosInstance = axios.create({
 });
 
 setInterval(async () => {
-  const {data} = await axiosInstance.get("/wakeup");
-  console.log(data);
+  try {
+    const { data } = await axiosInstance.get("/wakeup");
+    console.log(data);
+  } catch (err) {
+    console.log("WAKEUP FAILED: " + err.message);
+  }
 }, 300000);
 
 const lastExecutions = {};

@@ -32,11 +32,7 @@ app.use(express.json());
 app.use("/", fetchDataRoute);
 app.use("/execute", executeActionsRoute);
 app.use("/wakeup", (req, res) => {
-  try{
-    res.status(200).json("pinged");
-  }catch(err){
-    console.log(err.message);
-  }
+  res.status(200).json("pinged");
 });
 
 app.listen(process.env.PORT || 5000, () =>
