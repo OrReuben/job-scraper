@@ -31,8 +31,12 @@ schedule.forEach(({ time, route, daysInterval }) => {
 app.use(express.json());
 app.use("/", fetchDataRoute);
 app.use("/execute", executeActionsRoute);
-app.use("/ping", (req, res) => {
-  res.status(200).json("pinged");
+app.use("/wakeup", (req, res) => {
+  try{
+    res.status(200).json("pinged");
+  }catch(err){
+    console.log(err.message);
+  }
 });
 
 app.listen(process.env.PORT || 5000, () =>
