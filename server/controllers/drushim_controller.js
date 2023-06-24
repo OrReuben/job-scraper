@@ -12,35 +12,32 @@ const { retryFunction } = require("../globalFunctions/retryFunction");
 const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword) => {
-  const jobData = [];
   console.log(`DRUSHIM: Attempting to scrape the keyword: ${keyword}`);
   console.log("DRUSHIM: Navigating to page..");
-  await Promise.race([
+  await Promise.all([
     page.goto(
-      `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`
+      `https://www.drushim.co.il/jobs/search/${keyword}/?experience=1-2&ssaen=3`,
+      { waitUntil: "domcontentloaded" }
     ),
     page.waitForSelector(".jobs-row div:nth-child(2) .job-item"),
   ]);
 
   const jobItems = await page.$$(".jobs-row div:nth-child(2) .job-item");
+  const jobData = [];
 
   for (const jobItem of jobItems) {
     const specificSelector = await jobItem.$(".sub-details-btns .pointer");
     await specificSelector.click();
     await page.waitForSelector(".job-requirements div p");
-    const innerHTML = await (
-      await jobItem.getProperty("innerHTML")
-    ).jsonValue();
+
+    const innerHTML = await jobItem.evaluate((el) => el.innerHTML);
     const $ = cheerio.load(innerHTML);
 
-    const title = $(".job-url")
+    const title = $(".job-url").text().trim();
+    const [location, type] = $(".job-details-sub div div div:nth-child(1)")
       .text()
-      .trim();
-    const locationAndType = $(".job-details-sub div div div:nth-child(1)")
-      .text()
-      .trim();
-    const location = locationAndType.split("|")[0];
-    const type = locationAndType.split("|")[1];
+      .trim()
+      .split("|");
     const description = $(".job-details p")
       .text()
       .trim()
@@ -54,15 +51,15 @@ const processPages = async (page, keyword) => {
     const link = `https://www.drushim.co.il/${websiteLink}`;
     const ID = websiteLink.split("/")[2];
 
-    // console.log("Title:", title);
-    // console.log("Link:", link);
-    // console.log("Description:", description);
-    // console.log("Requirements:", requirements);
-    // console.log("ID:", ID);
-    // console.log("Location:", location);
-    // console.log("Type:", type);
-
-    if (!title || !link || !description || !requirements || !ID || !location || !type) {
+    if (
+      !title ||
+      !link ||
+      !description ||
+      !requirements ||
+      !ID ||
+      !location ||
+      !type
+    ) {
       continue;
     }
 
@@ -78,8 +75,8 @@ const processPages = async (page, keyword) => {
     };
     jobData.push(jobItemData);
   }
-  console.log(`DRUSHIM: Successfully scraped the keyword: ${keyword}`);
 
+  console.log(`DRUSHIM: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
 
@@ -88,7 +85,6 @@ const scrapeDrushimLogic = async () => {
 
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ["Javascript"];
   const jobData = [];
 
   console.log("DRUSHIM: Opening up the browser...");
@@ -116,6 +112,7 @@ const scrapeDrushimLogic = async () => {
       );
       jobData.push(...keywordJobData);
     }
+
     const filteredJobs = await filterJobData(jobData);
     const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
@@ -145,16 +142,15 @@ const scrapeDrushimLogic = async () => {
 const scrapeDrushim = async (req, res) => {
   try {
     const result = await retryFunction(scrapeDrushimLogic, 2);
-    res.status(201).json(
-      `Executed Successfully. 
-        Scraped from: ${result.jobDataLength} jobs, 
-        resulted in ${result.filteredJobsLength} jobs. 
-        Operation took: ${result.operationTime} Minutes`
-    );
+    res.status(201).json({
+      jobDataLength: result.jobDataLength,
+      filteredJobsLength: result.filteredJobsLength,
+      operationTime: result.operationTime,
+    });
     console.log(`Executed Successfully. 
-    Scraped from: ${result.jobDataLength} jobs, 
-    resulted in ${result.filteredJobsLength} jobs. 
-    Operation took: ${result.operationTime} Minutes`);
+      Scraped from: ${result.jobDataLength} jobs, 
+      Resulted in ${result.filteredJobsLength} jobs. 
+      Operation took: ${result.operationTime} Minutes`);
   } catch (err) {
     res.status(500).json("Something went wrong: " + err.message);
   }

@@ -12,13 +12,14 @@ const { retryFunction } = require("../globalFunctions/retryFunction");
 const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword) => {
-  const jobData = [];
-  console.log(`ALLJOBS: Attempting to scrape the keyword: Web Development`);
+  console.log(`ALLJOBS: Attempting to scrape the keyword: ${keyword}`);
   console.log("ALLJOBS: Navigating to page..");
-  await Promise.race([
-    page.goto(
-      `https://www.alljobs.co.il/SearchResultsGuest.aspx?page=1&position=1712,1994,1710,1759,1758,1711,1731,1694,1883&type=&source=&duration=0&exc=&region=`
-    ),
+
+  const baseUrl = "https://www.alljobs.co.il";
+  const searchUrl = `${baseUrl}/SearchResultsGuest.aspx?page=1&position=1712,1994,1710,1759,1758,1711,1731,1694,1883&type=&source=&duration=0&exc=&region=`;
+
+  await Promise.all([
+    page.goto(searchUrl),
     page.waitForSelector("div#search_bar_title span.T14"),
   ]);
 
@@ -29,44 +30,38 @@ const processPages = async (page, keyword) => {
     1
   );
 
-  for (let index = 0; index < totalPages; index++) {
-    (index + 1) % 5 === 0 && console.log("ALLJOBS: +5 Pages scraped");
+  const jobData = [];
 
-    await Promise.race([
-      page.goto(
-        `https://www.alljobs.co.il/SearchResultsGuest.aspx?page=${
-          index + 1
-        }&position=1712,1994,1710,1759,1758,1711,1731,1694,1883&type=&source=&duration=0&exc=&region=`,
-        { waitUntil: "domcontentloaded" }
-      ),
-      page.waitForFunction(() => {
-        const jobItems = document.querySelectorAll(".open-board");
-        return jobItems.length === 15;
-      }),
-    ]);
+  for (let index = 0; index < totalPages; index++) {
+    if ((index + 1) % 5 === 0) {
+      console.log("ALLJOBS: +5 Pages scraped");
+    }
+
+    const pageUrl = `${baseUrl}/SearchResultsGuest.aspx?page=${
+      index + 1
+    }&position=1712,1994,1710,1759,1758,1711,1731,1694,1883&type=&source=&duration=0&exc=&region=`;
+    await page.goto(pageUrl, { waitUntil: "domcontentloaded" });
 
     const jobItems = await page.$$(".open-board");
 
     for (const jobItem of jobItems) {
-      const innerHTML = await (
-        await jobItem.getProperty("innerHTML")
-      ).jsonValue();
+      const innerHTML = await jobItem
+        .getProperty("innerHTML")
+        .then((el) => el.jsonValue());
       const $ = cheerio.load(innerHTML);
 
       const title = $(".H10 + div a h3").text().trim();
 
-      const allLocations = []
-      $(".H5 + div a").each((index, element) => {
-        allLocations.push($(element).text());
-      });
+      const allLocations = $(".H5 + div a")
+        .map((index, element) => $(element).text())
+        .get();
       const location = allLocations.join(", ");
 
-      const jobTypes = [];
-      $(".H5 + div + div a").each((index, element) => {
-        jobTypes.push($(element).text());
-      });
+      const jobTypes = $(".H5 + div + div a")
+        .map((index, element) => $(element).text())
+        .get();
       const type = jobTypes.join(", ");
-      
+
       const description = $(".job-content-top-desc div")
         .first()
         .contents()
@@ -75,9 +70,10 @@ const processPages = async (page, keyword) => {
         })
         .text()
         .trim();
+
       const requirements = $(".job-content-top-desc .PT15").text().trim();
       const shortenedLink = $(".H10 + div div a").attr("href");
-      const link = `https://www.alljobs.co.il${shortenedLink}`;
+      const link = `${baseUrl}${shortenedLink}`;
       const ID = shortenedLink.split("=")[1];
 
       if (
@@ -100,13 +96,13 @@ const processPages = async (page, keyword) => {
         link,
         description,
         requirements,
-        keyword: "Web Development",
+        keyword,
       };
       jobData.push(jobItemData);
     }
   }
-  console.log(`ALLJOBS: Successfully scraped the keyword: ${keyword}`);
 
+  console.log(`ALLJOBS: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
 
@@ -114,7 +110,6 @@ const scrapeAllJobsLogic = async () => {
   console.log(`SCRAPING ALLJOBS...`);
 
   const startingScriptTime = new Date().getTime();
-  const jobData = [];
 
   console.log("ALLJOBS: Opening up the browser...");
   const browser = await launchBrowser();
@@ -132,15 +127,15 @@ const scrapeAllJobsLogic = async () => {
     });
 
     console.log("ALLJOBS: Processing pages...");
+    const keyword = "Web Development";
     const keywordJobData = await processKeyword(
       page,
-      "Web Development",
+      keyword,
       null,
       processPages
     );
-    jobData.push(...keywordJobData);
 
-    const filteredJobs = await filterJobData(jobData);
+    const filteredJobs = await filterJobData(keywordJobData);
     const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
     await browser.close();
@@ -155,7 +150,7 @@ const scrapeAllJobsLogic = async () => {
     console.log(`FINISHED SCRAPING ALLJOBS...`);
 
     return {
-      jobDataLength: jobData.length,
+      jobDataLength: keywordJobData.length,
       filteredJobsLength: uniqueFilteredJobs.length,
       operationTime: calculateToMinutes,
     };
@@ -169,12 +164,11 @@ const scrapeAllJobsLogic = async () => {
 const scrapeAllJobs = async (req, res) => {
   try {
     const result = await retryFunction(scrapeAllJobsLogic, 2);
-    res.status(201).json(
-      `Executed Successfully. 
-        Scraped from: ${result.jobDataLength} jobs, 
-        resulted in ${result.filteredJobsLength} jobs. 
-        Operation took: ${result.operationTime} Minutes`
-    );
+    res.status(201).json({
+      jobDataLength: result.jobDataLength,
+      filteredJobsLength: result.filteredJobsLength,
+      operationTime: result.operationTime,
+    });
     console.log(`Executed Successfully. 
     Scraped from: ${result.jobDataLength} jobs, 
     resulted in ${result.filteredJobsLength} jobs. 

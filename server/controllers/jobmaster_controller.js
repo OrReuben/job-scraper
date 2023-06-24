@@ -14,22 +14,47 @@ const {
 const { retryFunction } = require("../globalFunctions/retryFunction");
 const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
-const processPages = async (page, keyword, totalPages) => {
-  const jobData = [];
-  console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
-  for (let index = 0; index < totalPages; index++) {
-    (index + 1) % 5 === 0 && console.log("JOBMASTER: +5 Pages scraped");
+const processPageData = (pageData) => {
+  const $ = cheerio.load(pageData.html);
 
-    await Promise.race([
-      page.goto(
-        `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`,
-        { waitUntil: "domcontentloaded" }
-      ),
-      page.waitForFunction(() => {
-        const jobItems = document.querySelectorAll(".JobItemRight");
-        return jobItems.length === 10;
-      }),
-    ]);
+  const title = $("#enterJob .jobHead__text .CardHeader").text().trim();
+  const location = $("#enterJob .jobLocation").text().trim();
+  const type = $("#enterJob .jobType").text().trim();
+  const jobIdText = $("#enterJob .jobNumStyle").text().trim();
+  const numberRegex = /\d+/g;
+  const ID = jobIdText.match(numberRegex)?.[0];
+  const link = ID ? `https://www.jobmaster.co.il/jobs/checknum.asp?key=${ID}` : null;
+  const description = $("#jobFullDetails .jobDescription").text().trim().replace(/[\n\t]+/g, " ");
+  const requirements = $("#jobFullDetails .jobRequirements").text().trim().replace(/[\n\t]+/g, " ");
+
+  if (!title || !link || !description || !requirements || !ID || !location || !type) {
+    return null;
+  }
+
+  return {
+    title,
+    location,
+    type,
+    link,
+    description,
+    requirements,
+    ID,
+  };
+};
+
+const processPages = async (page, keyword, totalPages) => {
+  console.log(`JOBMASTER: Attempting to scrape the keyword: ${keyword}`);
+  const jobData = [];
+
+  for (let index = 0; index < totalPages; index++) {
+    if ((index + 1) % 5 === 0) {
+      console.log("JOBMASTER: +5 Pages scraped");
+    }
+
+    await page.goto(
+      `https://www.jobmaster.co.il/jobs/?currPage=${index + 1}&q=${keyword}`,
+      { waitUntil: "domcontentloaded" }
+    );
 
     const jobItems = await page.$$(".JobItemRight");
 
@@ -62,41 +87,15 @@ const processPages = async (page, keyword, totalPages) => {
           html: document.documentElement.innerHTML,
         };
       });
-      const $ = cheerio.load(pageData.html);
 
-      const title = $("#enterJob .jobHead__text .CardHeader").text().trim();
-      const location = $("#enterJob .jobLocation").text().trim();
-      const type = $("#enterJob .jobType").text().trim();
-      const jobIdText = $("#enterJob .jobNumStyle").text().trim();
-      const numberRegex = /\d+/g;
-      const ID = jobIdText.match(numberRegex)[0];
-      const link = `https://www.jobmaster.co.il/jobs/checknum.asp?key=${ID}`;
-      const description = $("#jobFullDetails .jobDescription")
-        .text()
-        .trim()
-        .replace(/[\n\t]+/g, " ");
-      const requirements = $("#jobFullDetails .jobRequirements")
-        .text()
-        .trim()
-        .replace(/[\n\t]+/g, " ");
-
-        if (!title || !link || !description || !requirements || !ID || !location || !type) {
-          continue;
-        }
-        
-      const oneJobData = {
-        keyword,
-        title,
-        location,
-        type,
-        link,
-        description,
-        requirements,
-        ID,
-      };
-      jobData.push(oneJobData);
+      const processedData = processPageData(pageData);
+      if (processedData) {
+        processedData.keyword = keyword;
+        jobData.push(processedData);
+      }
     }
   }
+
   console.log(`JOBMASTER: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
@@ -106,11 +105,11 @@ const scrapeJobmasterLogic = async () => {
 
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ["Fullstack"];
   const jobData = [];
 
   console.log("JOBMASTER: Opening up the browser...");
   const browser = await launchBrowser();
+
   try {
     console.log("JOBMASTER: Creating a new page..");
     const page = await browser.newPage();
@@ -156,7 +155,7 @@ const scrapeJobmasterLogic = async () => {
 
       console.log("JOBMASTER: Getting the amount of pages...");
       let totalPages = await getTotalPages(page, "#desktopResultsHeader", 10);
-      totalPages = totalPages > 10 ? 10 : totalPages;
+      totalPages = Math.min(totalPages, 10);
 
       console.log("JOBMASTER: Processing pages...");
       const keywordJobData = await processKeyword(
@@ -167,19 +166,20 @@ const scrapeJobmasterLogic = async () => {
       );
       jobData.push(...keywordJobData);
     }
+
     const filteredJobs = await filterJobData(jobData);
     const uniqueFilteredJobs = await filterUniqueJobsByID(filteredJobs);
 
-
     await browser.close();
 
-    await handleMongoActions(uniqueFilteredJobs, "Jobmaster")
+    await handleMongoActions(uniqueFilteredJobs, "Jobmaster");
     await executeSheets(uniqueFilteredJobs, "Jobmaster");
 
     const endingScriptTime = new Date().getTime();
     const calculateToMinutes = Math.floor(
       (endingScriptTime - startingScriptTime) / 1000 / 60
     );
+
     console.log(`FINISHED SCRAPING JOBMASTER...`);
 
     return {
@@ -190,24 +190,24 @@ const scrapeJobmasterLogic = async () => {
   } catch (err) {
     console.log("Something went wrong.. " + err.message);
     browser.close();
-    throw new Error();
+    throw err;
   }
 };
 
 const scrapeJobmaster = async (req, res) => {
   try {
     const result = await retryFunction(scrapeJobmasterLogic, 2);
-    res.status(201).json(
-      `Executed Successfully. 
-        Scraped from: ${result.jobDataLength} jobs, 
-        resulted in ${result.filteredJobsLength} jobs. 
-        Operation took: ${result.operationTime} Minutes`
-    );
+    res.status(201).json({
+      jobDataLength: result.jobDataLength,
+      filteredJobsLength: result.filteredJobsLength,
+      operationTime: result.operationTime,
+    });
     console.log(`Executed Successfully. 
-    Scraped from: ${result.jobDataLength} jobs, 
-    resulted in ${result.filteredJobsLength} jobs. 
-    Operation took: ${result.operationTime} Minutes`);
+      Scraped from: ${result.jobDataLength} jobs, 
+      Resulted in ${result.filteredJobsLength} jobs. 
+      Operation took: ${result.operationTime} Minutes`);
   } catch (err) {
+    console.log("Something went wrong: " + err.message);
     res.status(500).json("Something went wrong: " + err.message);
   }
 };

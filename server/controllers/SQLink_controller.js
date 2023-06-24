@@ -15,40 +15,25 @@ const { retryFunction } = require("../globalFunctions/retryFunction");
 const { handleMongoActions } = require("../globalFunctions/mongoActions");
 
 const processPages = async (page, keyword, totalPages) => {
-  const jobData = [];
   console.log(`SQLINK: Attempting to scrape the keyword: ${keyword}`);
+  const jobData = [];
 
   for (let index = 0; index < totalPages; index++) {
-    (index + 1) % 5 === 0 && console.log("SQLINK:  +5 Pages scraped");
+    if ((index + 1) % 5 === 0) {
+      console.log("SQLINK: +5 Pages scraped");
+    }
 
-    await page.goto(
-      `https://www.sqlink.com/career/searchresults/?page=${index + 1}`,
-      { waitUntil: "domcontentloaded" }
-    );
-    index+1 < totalPages && await page.waitForFunction(() => {
-      const jobItems = document.querySelectorAll(".positionItem");
-      return jobItems.length === 20;
-    });
-
-    // await Promise.race([
-    //   page.goto(
-    //     `https://www.sqlink.com/career/searchresults/?page=${index + 1}`,
-    //     { waitUntil: "domcontentloaded" }
-    //   ),
-    //   page.waitForFunction(
-    //     () => {
-    //       const jobItems = document.querySelectorAll(".positionItem");
-    //       return jobItems.length === 20;
-    //     },
-    //   ),
-    // ]);
+    const pageUrl = `https://www.sqlink.com/career/searchresults/?page=${
+      index + 1
+    }`;
+    await page.goto(pageUrl, { waitUntil: "domcontentloaded" });
 
     const jobItems = await page.$$(".positionItem");
 
     for (const jobItem of jobItems) {
-      const innerHTML = await (
-        await jobItem.getProperty("innerHTML")
-      ).jsonValue();
+      const innerHTML = await jobItem
+        .getProperty("innerHTML")
+        .then((el) => el.jsonValue());
       const $ = cheerio.load(innerHTML);
 
       const title = $(".article a").text().trim();
@@ -70,10 +55,18 @@ const processPages = async (page, keyword, totalPages) => {
         .trim()
         .replace(/[\n\t]+/g, " ");
 
-        if (!title || !link || !description || !requirements || !ID || !location || !type) {
-          continue;
-        }
-        
+      if (
+        !title ||
+        !link ||
+        !description ||
+        !requirements ||
+        !ID ||
+        !location ||
+        !type
+      ) {
+        continue;
+      }
+
       const oneJobData = {
         keyword,
         title,
@@ -87,6 +80,7 @@ const processPages = async (page, keyword, totalPages) => {
       jobData.push(oneJobData);
     }
   }
+
   console.log(`SQLINK: Successfully scraped the keyword: ${keyword}`);
   return jobData;
 };
@@ -95,7 +89,6 @@ const scrapeSQLinkLogic = async () => {
   console.log(`SCRAPING SQLINK...`);
   const startingScriptTime = new Date().getTime();
   const keywords = SCRAPING_KEYWORDS;
-  // const keywords = ["Fullstack"];
   const jobData = [];
 
   console.log("SQLINK: Opening up the browser...");
@@ -153,7 +146,7 @@ const scrapeSQLinkLogic = async () => {
 
       console.log("SQLINK: Getting the amount of pages...");
       const totalPages = await getTotalPages(page, "#resultsDetails", 20);
-      if (totalPages === null || totalPages === undefined) {
+      if (!totalPages) {
         continue;
       }
 
@@ -202,7 +195,7 @@ const scrapeSQLinkLogic = async () => {
     console.log("SQLINK: Processing pages...");
     const keywordJobData = await processPages(
       page,
-      "Web Developement",
+      "Web Development",
       totalPages
     );
     jobData.push(...keywordJobData);
@@ -212,7 +205,7 @@ const scrapeSQLinkLogic = async () => {
 
     await browser.close();
 
-    await handleMongoActions(uniqueFilteredJobs, "SQLink")
+    await handleMongoActions(uniqueFilteredJobs, "SQLink");
     await executeSheets(uniqueFilteredJobs, "SQLink");
 
     const endingScriptTime = new Date().getTime();
@@ -236,12 +229,11 @@ const scrapeSQLinkLogic = async () => {
 const scrapeSQLink = async (req, res) => {
   try {
     const result = await retryFunction(scrapeSQLinkLogic, 2);
-    res.status(201).json(
-      `Executed Successfully. 
-        Scraped from: ${result.jobDataLength} jobs, 
-        resulted in ${result.filteredJobsLength} jobs. 
-        Operation took: ${result.operationTime} Minutes`
-    );
+    res.status(201).json({
+      jobDataLength: result.jobDataLength,
+      filteredJobsLength: result.filteredJobsLength,
+      operationTime: result.operationTime,
+    });
     console.log(`Executed Successfully. 
     Scraped from: ${result.jobDataLength} jobs, 
     resulted in ${result.filteredJobsLength} jobs. 

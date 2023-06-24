@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const { retryFunction } = require("./retryFunction");
+const { scrollPageToBottom } = require('puppeteer-autoscroll-down');
 
 const SCRAPING_KEYWORDS = [
   "Fullstack",
@@ -18,7 +19,7 @@ const SCRAPING_KEYWORDS = [
 ];
 
 const launchBrowser = async () => {
-  return await puppeteer.launch({ headless: 'new', timeout: 90000 });
+  return await puppeteer.launch({ headless: 'new', timeout: 90000, defaultViewport:{height:1080, width:1920}});
 };
 
 const setDefaultPageParams = (page) => {
@@ -142,6 +143,25 @@ const processKeyword = async (
   }
 };
 
+async function autoScroll(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 500);
+    });
+  });
+}
+
 module.exports = {
   launchBrowser,
   navigateToPage,
@@ -152,5 +172,6 @@ module.exports = {
   getTotalPages,
   setDefaultPageParams,
   processKeyword,
+  autoScroll,
   SCRAPING_KEYWORDS,
 };

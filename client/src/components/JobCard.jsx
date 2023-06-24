@@ -19,7 +19,7 @@ const JobCard = ({ job }) => {
         <strong>|</strong>
         <span>
           <b>סוג משרה: </b>
-          {job.type}
+          {job.type }
         </span>
         <strong>|</strong>
       </div>
@@ -57,7 +57,6 @@ const CardContainer = styled.div`
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 0.75rem;
 
   @media (max-width: 1300px) {
